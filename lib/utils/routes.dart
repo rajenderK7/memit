@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:memit/models/note.dart';
+import 'package:memit/pages/collections_notes_page.dart';
+import 'package:memit/pages/collections_page.dart';
+import 'package:memit/pages/create_page.dart';
 import 'package:memit/pages/home_page.dart';
 import 'package:memit/pages/main_scaffold.dart';
+import 'package:memit/pages/read_note_page.dart';
 import 'package:memit/pages/settings_page.dart';
 
 /*
@@ -37,11 +42,7 @@ final GoRouter router = GoRouter(
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: "collections",
-              builder: (context, state) => Container(
-                width: double.maxFinite,
-                height: double.maxFinite,
-                color: Colors.red,
-              ),
+              builder: (context, state) => const CollectionsPage(),
             ),
           ],
         ),
@@ -56,14 +57,29 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const SettingsPage(),
     ),
     GoRoute(
-      parentNavigatorKey: _rootNavigatorKey,
-      path: "/create",
-      builder: (context, state) => Container(),
-    ),
+        parentNavigatorKey: _rootNavigatorKey,
+        path: "/create",
+        builder: (context, state) {
+          Note? note = state.extra != null ? state.extra as Note : null;
+          return CreatePage(
+            note: note,
+          );
+        }),
     GoRoute(
       parentNavigatorKey: _rootNavigatorKey,
       path: "/readNote/:id",
-      builder: (context, state) => Container(),
+      builder: (context, state) => ReadNotePage(
+        id: int.parse(
+          state.params["id"] ?? "",
+        ),
+      ),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+      path: "/collectionNotes/:id/:title",
+      builder: (context, state) => CollectionNotesPage(
+        collectionTitle: state.params["title"]!,
+      ),
     ),
   ],
 );

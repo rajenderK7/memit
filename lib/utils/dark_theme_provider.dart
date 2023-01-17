@@ -20,6 +20,11 @@ class DarkThemeNotifier extends StateNotifier<bool> {
     // persist the user's preffered mode.
     prefs.setBool("darkMode", state);
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }
 
 final darkThemeProvider = StateNotifierProvider<DarkThemeNotifier, bool>(

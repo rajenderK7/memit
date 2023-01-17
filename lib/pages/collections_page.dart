@@ -1,0 +1,144 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:memit/models/collection.dart';
+import 'package:memit/pages/collections_notes_page.dart';
+import 'package:memit/utils/collections_provider.dart';
+import 'package:go_router/go_router.dart';
+
+final collectionsProvider =
+    StateNotifierProvider<CollectionNotifier, List<Collection>>(
+        (ref) => CollectionNotifier());
+
+class CollectionsPage extends ConsumerStatefulWidget {
+  const CollectionsPage({super.key});
+
+  @override
+  ConsumerState<CollectionsPage> createState() => _CollectionsPageState();
+}
+
+class _CollectionsPageState extends ConsumerState<CollectionsPage> {
+  final TextEditingController _collectionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _collectionController.dispose();
+    super.dispose();
+  }
+
+  void _showCreateCollectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Collection Name"),
+          content: TextField(
+            controller: _collectionController,
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _collectionController.clear();
+                context.pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Collection collection =
+                    Collection(title: _collectionController.text);
+                ref
+                    .read(collectionsProvider.notifier)
+                    .addCollection(collection);
+                _collectionController.clear();
+                context.pop();
+              },
+              child: const Text("Create"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteCollection(BuildContext context, int id) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete this collection ?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                context.pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(collectionsProvider.notifier).deleteCollection(id);
+                context.pop();
+              },
+              child: const Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final collections = ref.watch(collectionsProvider);
+    return SingleChildScrollView(
+      physics: const ScrollPhysics(),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 10,
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.library_add),
+            onPressed: () {
+              _showCreateCollectionDialog(context);
+            },
+            label: const Text("Add new collection"),
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: collections.length,
+            itemBuilder: (context, index) {
+              Collection collection = collections[index];
+              return Card(
+                clipBehavior: Clip.hardEdge,
+                margin: const EdgeInsets.all(8.0),
+                child: InkWell(
+                  onTap: () {
+                    ref.read(currentCollectionProvider.notifier).state =
+                        collection.id!;
+                    context.push(
+                        "/collectionNotes/${collection.id}/${collection.title}");
+                  },
+                  child: ListTile(
+                    leading: const Icon(Icons.note),
+                    title: Text(collection.title),
+                    trailing: IconButton(
+                      onPressed: () {
+                        _deleteCollection(context, collection.id!);
+                      },
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -28,59 +28,25 @@ class BottomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationBarTheme(
-      data: NavigationBarThemeData(
-        labelTextStyle: MaterialStateProperty.all(
-          const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ),
-      child: NavigationBar(
-        selectedIndex: _calculateSelectedIndex(context),
-        onDestinationSelected: (int index) => _onTap(index, context),
-        destinations: const [
-          NavigationDestination(
-            label: "Home",
-            icon: Icon(
-              Icons.home_filled,
-            ),
-            tooltip: "Home",
-          ),
-          NavigationDestination(
-            label: "Collections",
-            icon: Icon(
-              Icons.folder,
-            ),
-            tooltip: "Collections",
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-/**
- * BottomNavigationBar(
-      onTap: (int idx) => onTap(idx, context),
-      currentIndex: 0,
-      items: const [
-        BottomNavigationBarItem(
+    return NavigationBar(
+      selectedIndex: _calculateSelectedIndex(context),
+      onDestinationSelected: (int index) => _onTap(index, context),
+      destinations: const [
+        NavigationDestination(
           label: "Home",
           icon: Icon(
             Icons.home_filled,
           ),
           tooltip: "Home",
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           label: "Collections",
           icon: Icon(
-            Icons.folder,
+            Icons.collections_bookmark,
           ),
           tooltip: "Collections",
         ),
       ],
     );
- */
+  }
+}

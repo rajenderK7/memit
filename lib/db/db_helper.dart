@@ -31,7 +31,7 @@ class DBHelper {
         '''CREATE TABLE collections (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL)''');
     await db
         .execute('''CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL, desc TEXT, updated TEXT NOT NULL, pinned INTEGER,
+    title TEXT NOT NULL, desc TEXT, note TEXT, updated TEXT NOT NULL, pinned INTEGER,
     secured INTEGER, color INTEGER, collection INTEGER, FOREIGN KEY(collection) REFERENCES artist(collections))''');
   }
 
@@ -54,12 +54,12 @@ class DBHelper {
     );
   }
 
-  Future<int> deleteNote(Note note) async {
+  Future<int> deleteNote(int id) async {
     final db = await instance.database;
     return await db.delete(
       "notes",
       where: "id = ?",
-      whereArgs: [note.id],
+      whereArgs: [id],
     );
   }
 
@@ -88,6 +88,15 @@ class DBHelper {
     return res.map((map) => Note.fromMap(map)).toList();
   }
 
+  Future<List<Note>> getNotesSorted() async {
+    final db = await instance.database;
+    var res = await db.query(
+      "notes",
+      orderBy: "pinned DESC, updated DESC",
+    );
+    return res.map((map) => Note.fromMap(map)).toList();
+  }
+
   Future<int> addCollection(Collection collection) async {
     final db = await instance.database;
     return await db.insert(
@@ -104,6 +113,11 @@ class DBHelper {
       orderBy: "id ASC",
     );
     return res.map((map) => Collection.fromMap(map)).toList();
+  }
+
+  Future<int> deleteCollection(int id) async {
+    final db = await instance.database;
+    return await db.delete("collections", where: "id = ?", whereArgs: [id]);
   }
 
   Future<List<Note>> getCollectionNotes(int collectionID) async {

@@ -19,9 +19,10 @@ class MemitApp extends ConsumerWidget {
       title: Constants.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        primarySwatch: Colors.orange,
       ),
-      darkTheme: ThemeData.dark(),
+      darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       routerConfig: router,
     );
