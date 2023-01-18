@@ -104,39 +104,44 @@ class _CollectionsPageState extends ConsumerState<CollectionsPage> {
             },
             label: const Text("Add new collection"),
           ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: collections.length,
-            itemBuilder: (context, index) {
-              Collection collection = collections[index];
-              return Card(
-                clipBehavior: Clip.hardEdge,
-                margin: const EdgeInsets.all(8.0),
-                child: InkWell(
-                  onTap: () {
-                    ref.read(currentCollectionProvider.notifier).state =
-                        collection.id!;
-                    context.push(
-                        "/collectionNotes/${collection.id}/${collection.title}");
-                  },
-                  child: ListTile(
-                    leading: const Icon(Icons.note),
-                    title: Text(collection.title),
-                    trailing: IconButton(
-                      onPressed: () {
-                        _deleteCollection(context, collection.id!);
-                      },
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.red,
+          collections.isEmpty
+              ? Container(
+                  margin: const EdgeInsets.only(top: 20.0),
+                  child:
+                      const Text("Make collections to organize your work 😄"))
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: collections.length,
+                  itemBuilder: (context, index) {
+                    Collection collection = collections[index];
+                    return Card(
+                      clipBehavior: Clip.hardEdge,
+                      margin: const EdgeInsets.all(8.0),
+                      child: InkWell(
+                        onTap: () {
+                          ref.read(currentCollectionProvider.notifier).state =
+                              collection.id!;
+                          context.push(
+                              "/collectionNotes/${collection.id}/${collection.title}");
+                        },
+                        child: ListTile(
+                          leading: const Icon(Icons.note),
+                          title: Text(collection.title),
+                          trailing: IconButton(
+                            onPressed: () {
+                              _deleteCollection(context, collection.id!);
+                            },
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ],
       ),
     );

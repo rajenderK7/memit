@@ -110,9 +110,15 @@ class DBHelper {
     final db = await instance.database;
     var res = await db.query(
       "collections",
-      orderBy: "id ASC",
+      orderBy: "id DESC",
     );
     return res.map((map) => Collection.fromMap(map)).toList();
+  }
+
+  Future<Collection> getCollectionById(int id) async {
+    final db = await instance.database;
+    var res = await db.query("collections", where: "id = ?", whereArgs: [id]);
+    return Collection.fromMap(res.first);
   }
 
   Future<int> deleteCollection(int id) async {
@@ -120,13 +126,13 @@ class DBHelper {
     return await db.delete("collections", where: "id = ?", whereArgs: [id]);
   }
 
-  Future<List<Note>> getCollectionNotes(int collectionID) async {
+  Future<List<Note>> getCollectionNotes(int collectionId) async {
     final db = await instance.database;
     var res = await db.query(
       "notes",
       where: "collection = ?",
-      whereArgs: [collectionID],
-      orderBy: "updated DESC",
+      whereArgs: [collectionId],
+      orderBy: "pinned DESC, updated DESC",
     );
     return res.map((map) => Note.fromMap(map)).toList();
   }

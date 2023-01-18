@@ -76,6 +76,7 @@ class NoteCard extends ConsumerWidget {
                 children: [
                   Text(
                     DateFormat.yMMMd().format(note.updated),
+                    style: const TextStyle(fontSize: 12),
                   ),
                   if (note.pinned)
                     const Icon(

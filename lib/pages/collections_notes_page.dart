@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:memit/db/db_helper.dart';
 import 'package:memit/models/note.dart';
 import 'package:memit/pages/home_page.dart';
 import 'package:memit/widgets/note_card.dart';
@@ -12,51 +13,79 @@ final collectionNotesProvider = Provider.autoDispose<List<Note>>((ref) {
   return notes.where((note) => note.collection == currentCollection).toList();
 });
 
-class CollectionNotesPage extends ConsumerWidget {
+class CollectionNotesPage extends StatefulWidget {
+  final int collectionId;
   final String collectionTitle;
-  const CollectionNotesPage({required this.collectionTitle, super.key});
+  const CollectionNotesPage(
+      {required this.collectionId, required this.collectionTitle, super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notes = ref.watch(collectionNotesProvider);
+  State<CollectionNotesPage> createState() => _CollectionNotesPageState();
+}
+
+class _CollectionNotesPageState extends State<CollectionNotesPage> {
+  late List<Note> notes;
+
+  void _loadNotes() async {
+    notes = await DBHelper.instance.getCollectionNotes(widget.collectionId);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotes();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: notes.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              physics: const ScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 8.0,
-                      left: 8.0,
-                      right: 8.0,
-                    ),
-                    child: Text(
-                      "$collectionTitle collection",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: notes.length,
-                    itemBuilder: (context, index) {
-                      Note note = notes[index];
-                      return NoteCard(note: note);
-                    },
-                  ),
-                ],
+      body: SingleChildScrollView(
+        physics: const ScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 8.0,
+                left: 8.0,
+                right: 8.0,
+              ),
+              child: Text(
+                "${widget.collectionTitle} collection",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
+            const SizedBox(
+              height: 5,
+            ),
+            FutureBuilder(
+              future: DBHelper.instance.getCollectionNotes(widget.collectionId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasData) {
+                  return ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: snapshot.data?.length,
+                    itemBuilder: (context, index) {
+                      Note note = snapshot.data?.elementAt(index) as Note;
+                      return NoteCard(note: note);
+                    },
+                  );
+                }
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+            )
+          ],
+        ),
+      ),
     );
   }
 }

@@ -15,7 +15,7 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notes = ref.watch(notesProvider);
     return notes.isEmpty
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(child: Text("Add notes, todos, scripts and more..😀"))
         : SingleChildScrollView(
             physics: const ScrollPhysics(),
             child: Column(

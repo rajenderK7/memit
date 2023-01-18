@@ -100,18 +100,21 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
               // _shareUtil();
             },
             icon: const Icon(Icons.share_rounded),
+            tooltip: "Share note",
           ),
           IconButton(
             onPressed: () {
               context.pushReplacement("/create", extra: _note);
             },
             icon: const Icon(Icons.edit),
+            tooltip: "Edit note",
           ),
           IconButton(
             onPressed: () {
               _deleteNoteDialog();
             },
             icon: const Icon(Icons.delete),
+            tooltip: "Delete note",
           ),
         ],
       ),

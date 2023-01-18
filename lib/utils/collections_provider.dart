@@ -11,9 +11,10 @@ class CollectionNotifier extends StateNotifier<List<Collection>> {
     state = await DBHelper.instance.getCollections();
   }
 
-  void addCollection(Collection collection) async {
-    await DBHelper.instance.addCollection(collection);
+  Future<int> addCollection(Collection collection) async {
+    int id = await DBHelper.instance.addCollection(collection);
     refreshCollections();
+    return id;
   }
 
   void deleteCollection(int id) async {

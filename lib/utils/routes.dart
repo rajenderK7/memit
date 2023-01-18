@@ -78,6 +78,7 @@ final GoRouter router = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       path: "/collectionNotes/:id/:title",
       builder: (context, state) => CollectionNotesPage(
+        collectionId: int.parse(state.params["id"]!),
         collectionTitle: state.params["title"]!,
       ),
     ),
