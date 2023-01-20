@@ -115,9 +115,10 @@ class DBHelper {
     return res.map((map) => Collection.fromMap(map)).toList();
   }
 
-  Future<Collection> getCollectionById(int id) async {
+  Future<Collection?> getCollectionById(int id) async {
     final db = await instance.database;
     var res = await db.query("collections", where: "id = ?", whereArgs: [id]);
+    if (res.isEmpty) return null;
     return Collection.fromMap(res.first);
   }
 
@@ -135,5 +136,11 @@ class DBHelper {
       orderBy: "pinned DESC, updated DESC",
     );
     return res.map((map) => Note.fromMap(map)).toList();
+  }
+
+  Future<void> removeNoteFromCollection(int noteId) async {
+    final db = await instance.database;
+    final query = "UPDATE notes SET collection = -1 WHERE id = $noteId";
+    await db.rawQuery(query);
   }
 }

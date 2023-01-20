@@ -17,6 +17,8 @@ class NotesNotifier extends StateNotifier<List<Note>> {
     refreshNotes();
   }
 
+  void removeNoteFromCollection() async {}
+
   @override
   void dispose() {
     super.dispose();

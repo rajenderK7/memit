@@ -157,32 +157,65 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          actionsAlignment: MainAxisAlignment.center,
-          title: const Text("Choose a collection"),
-          content: ElevatedButton.icon(
-            icon: const Icon(Icons.library_add),
-            onPressed: () {
-              context.pop();
-              _showCreateCollectionDialog(context);
-            },
-            label: const Text("Add new collection"),
-          ),
-          actions: List<Widget>.generate(
-            collections.length,
-            (index) => ListTile(
-              onTap: () {
-                setState(() {
-                  _currentCollectionId = collections[index].id;
-                });
-                context.pop();
-              },
-              title: Text(collections[index].title),
-            ),
-          ),
-        );
+        return StatefulBuilder(builder: (context, setStateLocal) {
+          return AlertDialog(
+            actionsAlignment: MainAxisAlignment.center,
+            title: const Text("Choose a collection"),
+            content: _currentCollectionId == null || _currentCollectionId == -1
+                ? ElevatedButton.icon(
+                    icon: const Icon(Icons.library_add),
+                    onPressed: () {
+                      context.pop();
+                      _showCreateCollectionDialog(context);
+                    },
+                    label: const Text("Add new collection"),
+                  )
+                : null,
+            actions: _currentCollectionId != null && _currentCollectionId != -1
+                ? <Widget>[
+                    const Text(
+                      "Remove the note from current collection to add it to a another collection.",
+                    ),
+                    const SizedBox(
+                      height: 8.0,
+                    ),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          removeNoteFromCollection(widget.note!.id!);
+                          context.pop();
+                        },
+                        child: const Text(
+                          "Remove from current collection",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ]
+                : List<Widget>.generate(
+                    collections.length,
+                    (index) => ListTile(
+                      onTap: () {
+                        setState(() {
+                          _currentCollectionId = collections[index].id;
+                        });
+                        context.pop();
+                      },
+                      title: Text(collections[index].title),
+                    ),
+                  ),
+          );
+        });
       },
     );
+  }
+
+  Future<void> removeNoteFromCollection(int noteId) async {
+    await DBHelper.instance.removeNoteFromCollection(noteId).then((value) {
+      setState(() {
+        _currentCollectionId = null;
+      });
+    });
   }
 
   @override
@@ -262,7 +295,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (_currentCollectionId != null)
+                if (_currentCollectionId != null && _currentCollectionId != -1)
                   FutureBuilder(
                     future: DBHelper.instance
                         .getCollectionById(_currentCollectionId!),

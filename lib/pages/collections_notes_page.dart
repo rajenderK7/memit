@@ -39,51 +39,47 @@ class _CollectionNotesPageState extends State<CollectionNotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: SingleChildScrollView(
-        physics: const ScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 8.0,
-                left: 8.0,
-                right: 8.0,
-              ),
-              child: Text(
-                "${widget.collectionTitle} collection",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8.0,
+          ),
+          child: Text(
+            widget.collectionTitle,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(
-              height: 5,
-            ),
-            FutureBuilder(
-              future: DBHelper.instance.getCollectionNotes(widget.collectionId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasData) {
-                  return ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: snapshot.data?.length,
-                    itemBuilder: (context, index) {
-                      Note note = snapshot.data?.elementAt(index) as Note;
-                      return NoteCard(note: note);
-                    },
-                  );
-                }
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              },
-            )
-          ],
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: FutureBuilder(
+          future: DBHelper.instance.getCollectionNotes(widget.collectionId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasData && snapshot.data!.isEmpty) {
+              return const Center(
+                child: Text("No notes added to this collection 😥"),
+              );
+            } else if (snapshot.hasData) {
+              return ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: snapshot.data?.length,
+                itemBuilder: (context, index) {
+                  Note note = snapshot.data?.elementAt(index) as Note;
+                  return NoteCard(note: note);
+                },
+              );
+            }
+            return const Center(
+              child: Text("No notes added to this collection 😥"),
+            );
+          },
         ),
       ),
     );
