@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memit/models/collection.dart';
-import 'package:memit/pages/collections_notes_page.dart';
+import 'package:memit/pages/collection_notes_page.dart';
 import 'package:memit/utils/collections_provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,12 +18,6 @@ class CollectionsPage extends ConsumerStatefulWidget {
 
 class _CollectionsPageState extends ConsumerState<CollectionsPage> {
   final TextEditingController _collectionController = TextEditingController();
-
-  @override
-  void dispose() {
-    _collectionController.dispose();
-    super.dispose();
-  }
 
   void _showCreateCollectionDialog(BuildContext context) {
     showDialog(
@@ -85,6 +79,12 @@ class _CollectionsPageState extends ConsumerState<CollectionsPage> {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _collectionController.dispose();
+    super.dispose();
   }
 
   @override

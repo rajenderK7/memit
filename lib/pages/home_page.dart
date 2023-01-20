@@ -16,23 +16,14 @@ class HomePage extends ConsumerWidget {
     final notes = ref.watch(notesProvider);
     return notes.isEmpty
         ? const Center(child: Text("Add notes, todos, scripts and more..😀"))
-        : SingleChildScrollView(
-            physics: const ScrollPhysics(),
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 5,
-                ),
-                ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: notes.length,
-                  itemBuilder: (context, index) {
-                    Note note = notes[index];
-                    return NoteCard(note: note);
-                  },
-                ),
-              ],
+        : Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: ListView.builder(
+              itemCount: notes.length,
+              itemBuilder: (context, index) {
+                Note note = notes[index];
+                return NoteCard(note: note);
+              },
             ),
           );
   }

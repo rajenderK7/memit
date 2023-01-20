@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:memit/models/note.dart';
-import 'package:memit/pages/collections_notes_page.dart';
+import 'package:memit/pages/collection_notes_page.dart';
 import 'package:memit/pages/collections_page.dart';
 import 'package:memit/pages/create_page.dart';
 import 'package:memit/pages/home_page.dart';
