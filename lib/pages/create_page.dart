@@ -211,13 +211,13 @@ class _CreatePageState extends ConsumerState<CreatePage> {
 
   @override
   void dispose() {
-    super.dispose();
     _textEditingController.dispose();
     _quillController.dispose();
     _editorScrollController.dispose();
     _editorFocusNode.dispose();
     _titleFocusNode.dispose();
     _collectionController.dispose();
+    super.dispose();
   }
 
   @override
@@ -317,6 +317,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                           decoration: const InputDecoration(
                             border: UnderlineInputBorder(),
                             labelText: 'Title',
+                            labelStyle: TextStyle(fontSize: 16),
                           ),
                           style: const TextStyle(
                             fontSize: 20,
@@ -401,6 +402,10 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                           showClearFormat: false,
                           showCodeBlock: false,
                           showInlineCode: false,
+                          fontFamilyValues: const {
+                            "Sans Serif": "Sans Serif",
+                            "Serif": "Serif",
+                          },
                           embedButtons: FlutterQuillEmbeds.buttons(
                             onImagePickCallback: _onImagePickCallback,
                             showCameraButton: false,

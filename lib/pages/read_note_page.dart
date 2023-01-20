@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:memit/db/db_helper.dart';
 import 'package:memit/models/note.dart';
 import 'package:go_router/go_router.dart';
+import 'package:memit/pages/collections_page.dart';
 import 'package:memit/pages/home_page.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ReadNotePage extends ConsumerStatefulWidget {
   final int id;
@@ -71,10 +73,10 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
     );
   }
 
-  // void _shareUtil() {
-  //   var text = _quillController.document.toPlainText();
-  //   print(text);
-  // }
+  Future<void> _shareNote() async {
+    var text = _quillController.document.toPlainText();
+    await Share.share(text);
+  }
 
   @override
   void initState() {
@@ -97,7 +99,7 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
         actions: [
           IconButton(
             onPressed: () {
-              // _shareUtil();
+              _shareNote();
             },
             icon: const Icon(Icons.share_rounded),
             tooltip: "Share note",
@@ -137,6 +139,37 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
                               fontSize: 12,
                               color: Theme.of(context).colorScheme.secondary,
                             ),
+                          ),
+                          Expanded(
+                            child: Consumer(builder: (context, ref, child) {
+                              final allCollections =
+                                  ref.watch(collectionsProvider);
+                              final collections = allCollections.where(
+                                  (collection) =>
+                                      collection.id == _note.collection);
+                              if (collections.isEmpty) {
+                                return const SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                );
+                              }
+                              final collectionName = collections.first.title;
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: Center(
+                                  child: Text(
+                                    collectionName,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
                           ),
                           Text(
                             DateFormat("hh:mm a").format(_note.updated),
