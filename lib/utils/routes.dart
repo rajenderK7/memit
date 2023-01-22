@@ -6,8 +6,10 @@ import 'package:memit/pages/collections_page.dart';
 import 'package:memit/pages/create_page.dart';
 import 'package:memit/pages/home_page.dart';
 import 'package:memit/pages/main_scaffold.dart';
+import 'package:memit/pages/onboarding_page.dart';
 import 'package:memit/pages/read_note_page.dart';
 import 'package:memit/pages/settings_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /*
   home -> "/"
@@ -82,5 +84,18 @@ final GoRouter router = GoRouter(
         collectionTitle: state.params["title"]!,
       ),
     ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+      path: "/onboarding",
+      builder: (context, state) => const OnboardingPage(),
+    )
   ],
+  redirect: (context, state) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool onBoarded = prefs.getBool("onBoarded") ?? false;
+    if (!onBoarded && state.subloc == "/") {
+      return "/onboarding";
+    }
+    return null;
+  },
 );
