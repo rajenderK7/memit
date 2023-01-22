@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:memit/utils/user_info_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MemitDrawer extends StatelessWidget {
   const MemitDrawer({
@@ -45,7 +46,9 @@ class MemitDrawer extends StatelessWidget {
             leading: const Icon(Icons.help_outline),
             title: const Text('Help & Feedback'),
             onTap: () {
-              // Update the state of the app.
+              // final prefs = await SharedPreferences.getInstance();
+              // prefs.setBool("onBoarded", false);
+              // TODO: Update the state of the app.
               // ...
             },
           ),

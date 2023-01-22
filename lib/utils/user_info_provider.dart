@@ -19,4 +19,9 @@ class UserInfoNotifer extends StateNotifier<String> {
     prefs.setString("username", username);
     loadPrefs();
   }
+
+  void updateOnboardingState(bool onBoarded) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool("onBoarded", onBoarded);
+  }
 }
