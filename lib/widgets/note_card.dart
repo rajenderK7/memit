@@ -59,6 +59,7 @@ class NoteCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
+      clipBehavior: Clip.hardEdge,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
       child: InkWell(
         borderRadius: BorderRadius.circular(12.0),
@@ -67,7 +68,7 @@ class NoteCard extends ConsumerWidget {
           _longPressDialogHandler(context, ref);
         },
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -91,22 +92,24 @@ class NoteCard extends ConsumerWidget {
               Text(
                 note.title,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(
-                height: 6.0,
+              SizedBox(
+                height: note.desc.isNotEmpty ? 4.0 : 0.0,
               ),
-              Text(
-                note.desc,
-                style: const TextStyle(
-                  fontSize: 14,
-                  overflow: TextOverflow.ellipsis,
+              if (note.desc.isNotEmpty)
+                Text(
+                  note.desc,
+                  style: TextStyle(
+                    fontSize: 13,
+                    overflow: TextOverflow.ellipsis,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:memit/utils/user_info_provider.dart';
 
 class MemitDrawer extends StatelessWidget {
   const MemitDrawer({
@@ -16,7 +18,17 @@ class MemitDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
             ),
-            child: const Text('Drawer Header'),
+            child: Consumer(
+              builder: (context, ref, child) {
+                final username = ref.watch(userInfoProvider);
+                return Center(
+                    child: Text(
+                  'Hi $username!',
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.surface),
+                ));
+              },
+            ),
           ),
           ListTile(
             horizontalTitleGap: 5,

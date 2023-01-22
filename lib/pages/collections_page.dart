@@ -28,6 +28,7 @@ class _CollectionsPageState extends ConsumerState<CollectionsPage> {
           content: TextField(
             controller: _collectionController,
             autofocus: true,
+            textCapitalization: TextCapitalization.words,
           ),
           actions: [
             TextButton(
@@ -98,7 +99,7 @@ class _CollectionsPageState extends ConsumerState<CollectionsPage> {
             height: 10,
           ),
           ElevatedButton.icon(
-            icon: const Icon(Icons.library_add),
+            icon: const Icon(Icons.add_box),
             onPressed: () {
               _showCreateCollectionDialog(context);
             },
@@ -126,7 +127,7 @@ class _CollectionsPageState extends ConsumerState<CollectionsPage> {
                               "/collectionNotes/${collection.id}/${collection.title}");
                         },
                         child: ListTile(
-                          leading: const Icon(Icons.note),
+                          leading: const Icon(Icons.bookmark),
                           title: Text(collection.title),
                           trailing: IconButton(
                             onPressed: () {

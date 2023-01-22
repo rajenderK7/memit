@@ -43,8 +43,9 @@ class _CreatePageState extends ConsumerState<CreatePage> {
 
   String _createDesc(var json) {
     String plainText = _quillController.document.toPlainText().toString();
+    if (plainText.isEmpty) return "";
     String desc =
-        plainText.length > 150 ? plainText.substring(1, 151) : plainText;
+        plainText.length > 150 ? plainText.substring(0, 151) : plainText.trim();
     return desc;
   }
 
@@ -163,7 +164,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             title: const Text("Choose a collection"),
             content: _currentCollectionId == null || _currentCollectionId == -1
                 ? ElevatedButton.icon(
-                    icon: const Icon(Icons.library_add),
+                    icon: const Icon(Icons.add_box),
                     onPressed: () {
                       context.pop();
                       _showCreateCollectionDialog(context);
@@ -182,7 +183,13 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                     Center(
                       child: ElevatedButton(
                         onPressed: () {
-                          removeNoteFromCollection(widget.note!.id!);
+                          if (!_isUpdating) {
+                            setState(() {
+                              _currentCollectionId = null;
+                            });
+                          } else {
+                            removeNoteFromCollection(widget.note!.id!);
+                          }
                           context.pop();
                         },
                         child: const Text(
@@ -262,7 +269,9 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             onPressed: () {
               _showCollectionsDialog(context);
             },
-            icon: const Icon(Icons.library_add),
+            icon: _currentCollectionId == null || _currentCollectionId == -1
+                ? const Icon(Icons.bookmark_add_outlined)
+                : const Icon(Icons.bookmark),
             disabledColor: Colors.grey,
             tooltip: "Save Note",
           ),
@@ -307,7 +316,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                           child: Row(
                             children: [
                               Icon(
-                                Icons.collections_bookmark,
+                                Icons.bookmark,
                                 color: Theme.of(context).colorScheme.secondary,
                                 size: 16,
                               ),

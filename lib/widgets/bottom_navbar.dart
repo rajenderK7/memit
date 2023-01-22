@@ -42,7 +42,7 @@ class BottomNavbar extends StatelessWidget {
         NavigationDestination(
           label: "Collections",
           icon: Icon(
-            Icons.collections_bookmark,
+            Icons.bookmarks,
           ),
           tooltip: "Collections",
         ),

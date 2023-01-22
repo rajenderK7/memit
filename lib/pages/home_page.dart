@@ -11,20 +11,24 @@ final notesProvider = StateNotifierProvider<NotesNotifier, List<Note>>((ref) {
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
+  // TODO: Implement `Search` functionality.
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notes = ref.watch(notesProvider);
     return notes.isEmpty
         ? const Center(child: Text("Add notes, todos, scripts and more..😀"))
-        : Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: ListView.builder(
-              itemCount: notes.length,
-              itemBuilder: (context, index) {
-                Note note = notes[index];
-                return NoteCard(note: note);
-              },
-            ),
+        : ListView.builder(
+            itemCount: notes.length,
+            itemBuilder: (context, index) {
+              Note note = notes[index];
+              return Padding(
+                padding: index == 0
+                    ? const EdgeInsets.only(top: 2.0)
+                    : const EdgeInsets.all(0.0),
+                child: NoteCard(note: note),
+              );
+            },
           );
   }
 }

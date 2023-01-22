@@ -122,9 +122,13 @@ class DBHelper {
     return Collection.fromMap(res.first);
   }
 
-  Future<int> deleteCollection(int id) async {
+  Future<void> deleteCollection(int id) async {
     final db = await instance.database;
-    return await db.delete("collections", where: "id = ?", whereArgs: [id]);
+    final batch = db.batch();
+    batch.delete("collections", where: "id = ?", whereArgs: [id]);
+    batch.update("notes", {"collection": -1},
+        where: "collection = ?", whereArgs: [id]);
+    await batch.commit(noResult: true);
   }
 
   Future<List<Note>> getCollectionNotes(int collectionId) async {
