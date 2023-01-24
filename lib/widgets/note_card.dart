@@ -59,6 +59,8 @@ class NoteCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
+      color: Theme.of(context).colorScheme.surfaceVariant,
+      elevation: 0.0,
       clipBehavior: Clip.hardEdge,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
       child: InkWell(

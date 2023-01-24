@@ -74,7 +74,7 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
   }
 
   // TODO: Implement sharing the note while
-  // retaining all the delta features maybe
+  // retaining all the delta features, maybe
   // as a text file or Memit note itself.
   Future<void> _shareNote() async {
     var text = _quillController.document.toPlainText();

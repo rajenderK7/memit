@@ -37,7 +37,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ),
           const SizedBox(height: 20.0),
           const Text(
-            "Just one thing!\nWhat is you name?",
+            "Just one thing..\nWhat is you name?",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
@@ -69,7 +69,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ),
           const SizedBox(height: 30.0),
           const Text(
-            "With Memit take notes, todos and\nanything you want in a rich editing environment ✨",
+            "With Memit take notes, todos and\nanything you want in a rich editing environment 🚀",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
