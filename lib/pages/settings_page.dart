@@ -44,6 +44,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const Spacer(),
+          const Image(
+            height: 150,
+            width: 150,
+            image: AssetImage("assets/logo.png"),
+          ),
+          const Spacer(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: TextField(
@@ -87,7 +94,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           ref.read(darkThemeProvider)
               ? const Text("Switch to Light mode")
-              : const Text("Switch to Dark mode")
+              : const Text("Switch to Dark mode"),
+          const Spacer(),
         ],
       ),
     );

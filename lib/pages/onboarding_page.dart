@@ -28,8 +28,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
         children: [
           const Spacer(),
           const Image(
+            height: 150,
+            width: 150,
             image: AssetImage("assets/logo.png"),
           ),
+          const SizedBox(height: 5.0),
           const Text(
             "Memit",
             textAlign: TextAlign.center,
