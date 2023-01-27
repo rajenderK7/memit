@@ -161,6 +161,12 @@ class _CreatePageState extends ConsumerState<CreatePage> {
         return StatefulBuilder(builder: (context, setStateLocal) {
           return AlertDialog(
             actionsAlignment: MainAxisAlignment.center,
+            contentPadding: const EdgeInsets.only(
+              left: 24.0,
+              right: 24.0,
+              top: 16.0,
+              bottom: 0.0,
+            ),
             title: const Text("Choose a collection"),
             content: _currentCollectionId == null || _currentCollectionId == -1
                 ? ElevatedButton.icon(
@@ -238,6 +244,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       );
       _textEditingController = TextEditingController();
     }
+    ref.read(collectionsProvider);
   }
 
   Future<String?> _onImagePickCallback(File file) async {
@@ -397,6 +404,9 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                     ],
                   ),
                 ),
+                const SizedBox(
+                  height: 10.0,
+                ),
                 Expanded(
                   child: quill.QuillEditor(
                     controller: _quillController,
@@ -408,8 +418,8 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                     focusNode: _editorFocusNode,
                     padding: MediaQuery.of(context).orientation ==
                             Orientation.portrait
-                        ? const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 12.0)
+                        ? const EdgeInsets.only(
+                            bottom: 8.0, left: 12.0, right: 12.0)
                         : const EdgeInsets.symmetric(
                             vertical: 5.0, horizontal: 20.0),
                     embedBuilders: [

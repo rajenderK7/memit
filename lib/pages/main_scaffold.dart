@@ -15,6 +15,7 @@ class MainScaffold extends StatelessWidget {
       appBar: const MemitAppBar(),
       body: child,
       floatingActionButton: FloatingActionButton(
+        tooltip: "Create note",
         onPressed: () => context.push("/create"),
         child: const Icon(Icons.add),
       ),

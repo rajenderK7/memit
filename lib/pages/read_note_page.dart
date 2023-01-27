@@ -208,8 +208,7 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
                     focusNode: _editorFocusNode,
                     padding: MediaQuery.of(context).orientation ==
                             Orientation.portrait
-                        ? const EdgeInsets.symmetric(
-                            vertical: 0, horizontal: 10)
+                        ? const EdgeInsets.only(bottom: 10, left: 10, right: 10)
                         : const EdgeInsets.symmetric(
                             vertical: 5, horizontal: 20),
                     embedBuilders: [
