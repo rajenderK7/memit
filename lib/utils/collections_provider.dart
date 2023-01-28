@@ -21,9 +21,4 @@ class CollectionNotifier extends StateNotifier<List<Collection>> {
     await DBHelper.instance.deleteCollection(id);
     refreshCollections();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

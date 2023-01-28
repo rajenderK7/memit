@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+final darkThemeProvider = StateNotifierProvider<DarkThemeNotifier, bool>(
+    (ref) => DarkThemeNotifier());
+
 class DarkThemeNotifier extends StateNotifier<bool> {
   late SharedPreferences prefs;
 
@@ -20,12 +23,4 @@ class DarkThemeNotifier extends StateNotifier<bool> {
     // persist the user's preffered mode.
     prefs.setBool("darkMode", state);
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
-
-final darkThemeProvider = StateNotifierProvider<DarkThemeNotifier, bool>(
-    (ref) => DarkThemeNotifier());

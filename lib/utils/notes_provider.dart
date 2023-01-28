@@ -16,11 +16,4 @@ class NotesNotifier extends StateNotifier<List<Note>> {
     await DBHelper.instance.deleteNote(id);
     refreshNotes();
   }
-
-  void removeNoteFromCollection() async {}
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
