@@ -58,61 +58,65 @@ class NoteCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      color: Theme.of(context).colorScheme.surfaceVariant,
-      elevation: 0.0,
-      clipBehavior: Clip.hardEdge,
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12.0),
-        onTap: () => context.push("/readNote/${note.id}"),
-        onLongPress: () {
-          _longPressDialogHandler(context, ref);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    DateFormat.yMMMd().format(note.updated),
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  if (note.pinned)
-                    const Icon(
-                      Icons.push_pin_rounded,
-                      size: 18,
+    return Hero(
+      transitionOnUserGestures: true,
+      tag: "${note.id}",
+      child: Card(
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        elevation: 0.0,
+        clipBehavior: Clip.hardEdge,
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.0),
+          onTap: () => context.push("/readNote/${note.id}"),
+          onLongPress: () {
+            _longPressDialogHandler(context, ref);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormat.yMMMd().format(note.updated),
+                      style: const TextStyle(fontSize: 12),
                     ),
-                ],
-              ),
-              const SizedBox(
-                height: 6.0,
-              ),
-              Text(
-                note.title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+                    if (note.pinned)
+                      const Icon(
+                        Icons.push_pin_rounded,
+                        size: 18,
+                      ),
+                  ],
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(
-                height: note.desc.isNotEmpty ? 4.0 : 0.0,
-              ),
-              if (note.desc.isNotEmpty)
+                const SizedBox(
+                  height: 6.0,
+                ),
                 Text(
-                  note.desc,
-                  style: TextStyle(
-                    fontSize: 13,
-                    overflow: TextOverflow.ellipsis,
-                    color: Theme.of(context).colorScheme.secondary,
+                  note.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-            ],
+                SizedBox(
+                  height: note.desc.isNotEmpty ? 4.0 : 0.0,
+                ),
+                if (note.desc.isNotEmpty)
+                  Text(
+                    note.desc,
+                    style: TextStyle(
+                      fontSize: 13,
+                      overflow: TextOverflow.ellipsis,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

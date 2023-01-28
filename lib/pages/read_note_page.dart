@@ -125,98 +125,103 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            DateFormat.yMMMd().format(_note.updated),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.secondary,
+          : Hero(
+              transitionOnUserGestures: true,
+              tag: "${_note.id}",
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              DateFormat.yMMMd().format(_note.updated),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: Consumer(builder: (context, ref, child) {
-                              final allCollections =
-                                  ref.watch(collectionsProvider);
-                              final collections = allCollections.where(
-                                  (collection) =>
-                                      collection.id == _note.collection);
-                              if (collections.isEmpty) {
-                                return const SizedBox(
-                                  height: 0,
-                                  width: 0,
-                                );
-                              }
-                              final collectionName = collections.first.title;
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4.0),
-                                child: Center(
-                                  child: Text(
-                                    collectionName,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
+                            Expanded(
+                              child: Consumer(builder: (context, ref, child) {
+                                final allCollections =
+                                    ref.watch(collectionsProvider);
+                                final collections = allCollections.where(
+                                    (collection) =>
+                                        collection.id == _note.collection);
+                                if (collections.isEmpty) {
+                                  return const SizedBox(
+                                    height: 0,
+                                    width: 0,
+                                  );
+                                }
+                                final collectionName = collections.first.title;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
+                                  child: Center(
+                                    child: Text(
+                                      collectionName,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }),
-                          ),
-                          Text(
-                            DateFormat("hh:mm a").format(_note.updated),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.secondary,
+                                );
+                              }),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Text(
-                        _note.title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
+                            Text(
+                              DateFormat("hh:mm a").format(_note.updated),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const Divider(),
-                    ],
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        Text(
+                          _note.title,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Divider(),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: quill.QuillEditor(
-                    controller: _quillController,
-                    readOnly: true,
-                    autoFocus: false,
-                    expands: true,
-                    scrollable: true,
-                    scrollController: _editorScrollController,
-                    focusNode: _editorFocusNode,
-                    padding: MediaQuery.of(context).orientation ==
-                            Orientation.portrait
-                        ? const EdgeInsets.only(bottom: 10, left: 10, right: 10)
-                        : const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 20),
-                    embedBuilders: [
-                      ...FlutterQuillEmbeds.builders(),
-                    ],
+                  Expanded(
+                    child: quill.QuillEditor(
+                      controller: _quillController,
+                      readOnly: true,
+                      autoFocus: false,
+                      expands: true,
+                      scrollable: true,
+                      scrollController: _editorScrollController,
+                      focusNode: _editorFocusNode,
+                      padding: MediaQuery.of(context).orientation ==
+                              Orientation.portrait
+                          ? const EdgeInsets.only(
+                              bottom: 10, left: 10, right: 10)
+                          : const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 20),
+                      embedBuilders: [
+                        ...FlutterQuillEmbeds.builders(),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }

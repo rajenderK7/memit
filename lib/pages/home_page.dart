@@ -16,16 +16,14 @@ class HomePage extends ConsumerWidget {
     final notes = ref.watch(notesProvider);
     return notes.isEmpty
         ? const Center(child: Text("Add notes, todos, scripts and more..😀"))
-        : ListView.builder(
-            itemCount: notes.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: index == 0
-                    ? const EdgeInsets.only(top: 2.0)
-                    : const EdgeInsets.only(top: 2.0),
-                child: NoteCard(note: notes[index]),
-              );
-            },
+        : Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+            child: ListView.builder(
+              itemCount: notes.length,
+              itemBuilder: (context, index) {
+                return NoteCard(note: notes[index]);
+              },
+            ),
           );
   }
 }
