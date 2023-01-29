@@ -40,46 +40,48 @@ class _CollectionNotesPageState extends State<CollectionNotesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        title: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8.0,
-          ),
-          child: Text(
-            widget.collectionTitle,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
+        elevation: 1.0,
       ),
       body: Padding(
-        padding: const EdgeInsets.only(top: 4.0),
-        child: FutureBuilder(
-          future: DBHelper.instance.getCollectionNotes(widget.collectionId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasData && snapshot.data!.isEmpty) {
-              return const Center(
-                child: Text("No notes added to this collection 😥"),
-              );
-            } else if (snapshot.hasData) {
-              return ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: snapshot.data?.length,
-                itemBuilder: (context, index) {
-                  Note note = snapshot.data?.elementAt(index) as Note;
-                  return NoteCard(note: note);
+        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              child: Text(
+                widget.collectionTitle,
+                style: const TextStyle(fontSize: 28),
+              ),
+            ),
+            Expanded(
+              child: FutureBuilder(
+                future:
+                    DBHelper.instance.getCollectionNotes(widget.collectionId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text("No notes added to this collection 😥"),
+                    );
+                  } else if (snapshot.hasData) {
+                    return ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data?.length,
+                      itemBuilder: (context, index) {
+                        Note note = snapshot.data?.elementAt(index) as Note;
+                        return NoteCard(note: note);
+                      },
+                    );
+                  }
+                  return const Center(
+                    child: Text("No notes added to this collection 😥"),
+                  );
                 },
-              );
-            }
-            return const Center(
-              child: Text("No notes added to this collection 😥"),
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );

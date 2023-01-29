@@ -91,57 +91,60 @@ class _CollectionsPageState extends ConsumerState<CollectionsPage> {
   @override
   Widget build(BuildContext context) {
     final collections = ref.watch(collectionsProvider);
-    return SingleChildScrollView(
-      physics: const ScrollPhysics(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6.0),
       child: Column(
         children: [
-          const SizedBox(
-            height: 10,
-          ),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.add_box),
-            onPressed: () {
-              _showCreateCollectionDialog(context);
-            },
-            label: const Text("Add new collection"),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.add_box),
+              onPressed: () {
+                _showCreateCollectionDialog(context);
+              },
+              label: const Text("Add new collection"),
+            ),
           ),
           collections.isEmpty
-              ? Container(
-                  margin: const EdgeInsets.only(top: 20.0),
-                  child:
-                      const Text("Make collections to organize your work 😄"))
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: collections.length,
-                  itemBuilder: (context, index) {
-                    Collection collection = collections[index];
-                    return Card(
-                      clipBehavior: Clip.hardEdge,
-                      margin: const EdgeInsets.all(8.0),
-                      child: InkWell(
-                        onTap: () {
-                          ref.read(currentCollectionProvider.notifier).state =
-                              collection.id!;
-                          context.push(
-                              "/collectionNotes/${collection.id}/${collection.title}");
-                        },
-                        child: ListTile(
-                          leading: const Icon(Icons.bookmark),
-                          title: Text(collection.title),
-                          trailing: IconButton(
-                            onPressed: () {
-                              _deleteCollection(context, collection.id!);
-                            },
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
+              ? Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 20.0),
+                    child:
+                        const Text("Make collections to organize your work 😄"),
+                  ),
+                )
+              : Expanded(
+                  child: ListView.builder(
+                    itemCount: collections.length,
+                    itemBuilder: (context, index) {
+                      Collection collection = collections[index];
+                      return Card(
+                        clipBehavior: Clip.hardEdge,
+                        margin: const EdgeInsets.all(8.0),
+                        child: InkWell(
+                          onTap: () {
+                            ref.read(currentCollectionProvider.notifier).state =
+                                collection.id!;
+                            context.push(
+                                "/collectionNotes/${collection.id}/${collection.title}");
+                          },
+                          child: ListTile(
+                            leading: const Icon(Icons.bookmark),
+                            title: Text(collection.title),
+                            trailing: IconButton(
+                              onPressed: () {
+                                _deleteCollection(context, collection.id!);
+                              },
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.red,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
         ],
       ),
