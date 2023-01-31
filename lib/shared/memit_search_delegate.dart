@@ -11,7 +11,9 @@ class MemitSearchDelegate extends SearchDelegate {
   List<Widget>? buildActions(BuildContext context) {
     return [
       IconButton(
-        onPressed: () => query = "",
+        onPressed: () {
+          query == "" ? close(context, null) : query = "";
+        },
         icon: const Icon(Icons.clear),
       ),
     ];

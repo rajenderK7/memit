@@ -44,9 +44,10 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   String _createDesc(var json) {
     String plainText = _quillController.document.toPlainText().toString();
     if (plainText.isEmpty) return "";
-    String desc =
-        plainText.length > 150 ? plainText.substring(0, 151) : plainText.trim();
-    return desc;
+    String desc = plainText.length > 150
+        ? plainText.substring(0, 151).trim()
+        : plainText.trim();
+    return desc.replaceAll(RegExp(r'(\n){2,}'), "\n");
   }
 
   SnackBar customSnackbar(String content) {
@@ -126,6 +127,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
           content: TextField(
             controller: _collectionController,
             autofocus: true,
+            textCapitalization: TextCapitalization.words,
           ),
           actions: [
             TextButton(
@@ -271,6 +273,16 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            if (_canSaveOrUpdate) {
+              _saveOrUpdateNote();
+            } else {
+              context.pop();
+            }
+          },
+          icon: const Icon(Icons.arrow_back),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -280,7 +292,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                 ? const Icon(Icons.bookmark_add_outlined)
                 : const Icon(Icons.bookmark),
             disabledColor: Colors.grey,
-            tooltip: "Save Note",
+            tooltip: "Add to collection",
           ),
           IconButton(
             onPressed: () {
@@ -299,10 +311,14 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             disabledColor: Colors.grey,
             tooltip: "Save Note",
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert),
-            tooltip: "More",
+          // TODO: Implement the more button feature if required.
+          // IconButton(
+          //   onPressed: () {},
+          //   icon: const Icon(Icons.more_vert),
+          //   tooltip: "More",
+          // ),
+          const SizedBox(
+            width: 5,
           ),
         ],
       ),

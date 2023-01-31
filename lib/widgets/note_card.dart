@@ -114,6 +114,7 @@ class NoteCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       color: Theme.of(context).colorScheme.secondary,
                     ),
+                    maxLines: 4,
                   ),
               ],
             ),
