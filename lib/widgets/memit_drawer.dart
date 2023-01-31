@@ -14,19 +14,21 @@ class MemitDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          Container(
+            margin: const EdgeInsets.only(bottom: 8.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+            color: Theme.of(context).colorScheme.primary,
+            height: 200,
             child: Consumer(
               builder: (context, ref, child) {
                 final username = ref.watch(userInfoProvider);
                 return Center(
-                    child: Text(
-                  'Hi $username!',
-                  style:
-                      TextStyle(color: Theme.of(context).colorScheme.surface),
-                ));
+                  child: Text(
+                    'Hi $username!',
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.surface),
+                  ),
+                );
               },
             ),
           ),
