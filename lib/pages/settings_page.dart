@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
+import 'package:memit/pages/home_page.dart';
 import 'package:memit/utils/dark_theme_provider.dart';
 import 'package:memit/utils/user_info_provider.dart';
 
@@ -18,10 +20,92 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   void initState() {
     super.initState();
     _loadInfo();
+    ref.read(passcodeProvider);
   }
 
   void _loadInfo() async {
     _controller.text = ref.read(userInfoProvider);
+  }
+
+  void _setPasscodeHandler() {
+    screenLockCreate(
+      title: const Text("Enter new passcode"),
+      confirmTitle: const Text("Confirm new passcode"),
+      context: context,
+      onConfirmed: (newPasscode) {
+        ref.read(passcodeProvider.notifier).setPasscode(newPasscode);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Passcode set successfully ✅"),
+          ),
+        );
+        context.pop();
+      },
+    );
+  }
+
+  void _passcodeHandler() {
+    if (ref.read(passcodeProvider) != null) {
+      screenLock(
+        context: context,
+        title: const Text("Enter previous passcode to continue"),
+        cancelButton: const Icon(Icons.close),
+        onCancelled: () => context.pop(),
+        correctString: ref.read(passcodeProvider).toString(),
+        onUnlocked: () {
+          context.pop(); // pop the lock screen.
+          _setPasscodeHandler();
+        },
+        // customizedButtonChild: const Icon(Icons.fingerprint),
+        footer: Padding(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: TextButton(
+            onPressed: () {},
+            child: const Text(
+              "Forgot passcode",
+            ),
+          ),
+        ),
+      );
+    } else {
+      _setPasscodeHandler();
+    }
+  }
+
+  void _themeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Choose theme"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                onTap: () {
+                  ref.read(darkThemeProvider.notifier).toggle(dark: false);
+                  context.pop();
+                },
+                leading: const Icon(
+                  Icons.light_mode_rounded,
+                ),
+                title: const Text("Light"),
+              ),
+              ListTile(
+                onTap: () {
+                  ref.read(darkThemeProvider.notifier).toggle(dark: true);
+                  context.pop();
+                },
+                leading: const Icon(
+                  Icons.dark_mode_rounded,
+                ),
+                title: const Text("Dark"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -41,61 +125,77 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
         ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: ListView(
         children: [
-          const Spacer(),
+          const SizedBox(
+            height: 50,
+          ),
           const Image(
-            height: 150,
-            width: 150,
+            height: 100,
+            width: 100,
             image: AssetImage("assets/logo.png"),
           ),
-          const Spacer(),
+          // Spacer(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                border: UnderlineInputBorder(),
-                labelText: 'Username',
-                labelStyle: TextStyle(fontSize: 16),
-              ),
-              controller: _controller,
-              textCapitalization: TextCapitalization.words,
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 18.0),
+            child: Column(
+              children: [
+                TextField(
+                  style: const TextStyle(fontSize: 20),
+                  decoration: const InputDecoration(
+                    border: UnderlineInputBorder(),
+                    labelText: 'Username',
+                    labelStyle: TextStyle(fontSize: 14),
+                  ),
+                  controller: _controller,
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(
+                    Icons.check,
+                  ),
+                  onPressed: () {
+                    ref
+                        .read(userInfoProvider.notifier)
+                        .updateUsername(_controller.text.trim());
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Username saved successfully 😀"),
+                      ),
+                    );
+                  },
+                  label: const Text("Save"),
+                ),
+              ],
             ),
           ),
-          const SizedBox(
-            height: 20,
+          ListTile(
+            onTap: _passcodeHandler,
+            leading: const Icon(
+              Icons.lock,
+              color: Colors.amber,
+            ),
+            title: const Text("Set Passcode"),
           ),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.check),
-            onPressed: () {
-              ref
-                  .read(userInfoProvider.notifier)
-                  .updateUsername(_controller.text.trim());
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Username saved succesfully 😀"),
-                ),
-              );
-            },
-            label: const Text("Save"),
+          ListTile(
+            onTap: _themeDialog,
+            leading: const Icon(
+              Icons.color_lens,
+              color: Colors.pink,
+            ),
+            title: const Text("Theme"),
           ),
-          const SizedBox(
-            height: 20,
+          ListTile(
+            onTap: () => context.push("/forgot_passcode"),
+            leading: const Icon(
+              Icons.lock_reset,
+              color: Colors.grey,
+            ),
+            title: const Text("Forgot Passcode"),
           ),
-          Switch(
-            value: ref.watch(darkThemeProvider),
-            onChanged: (onChanged) {
-              ref.read(darkThemeProvider.notifier).toggle();
-            },
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          ref.read(darkThemeProvider)
-              ? const Text("Switch to Light mode")
-              : const Text("Switch to Dark mode"),
-          const Spacer(),
         ],
       ),
     );

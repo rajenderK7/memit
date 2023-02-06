@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:intl/intl.dart';
 import 'package:memit/models/note.dart';
 import 'package:memit/pages/home_page.dart';
@@ -29,6 +30,29 @@ class NoteCard extends ConsumerWidget {
   //     },
   //   );
   // }
+
+  void _onTap(BuildContext context, WidgetRef ref) {
+    screenLock(
+      context: context,
+      title: const Text("Enter passcode to continue"),
+      correctString: ref.read(passcodeProvider).toString(),
+      cancelButton: const Icon(Icons.close),
+      onCancelled: () => context.pop(),
+      onUnlocked: () {
+        context.pop(); // pop the lock screen.
+        context.push("/readNote/${note.id}");
+      },
+      footer: Padding(
+        padding: const EdgeInsets.only(top: 20.0),
+        child: TextButton(
+          onPressed: () {},
+          child: const Text(
+            "Forgot passcode",
+          ),
+        ),
+      ),
+    );
+  }
 
   void _longPressDialogHandler(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -68,7 +92,17 @@ class NoteCard extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         child: InkWell(
           borderRadius: BorderRadius.circular(12.0),
-          onTap: () => context.push("/readNote/${note.id}"),
+          onTap: () {
+            if (ref.read(passcodeProvider) != null) {
+              if (note.secured) {
+                _onTap(context, ref);
+              } else {
+                context.push("/readNote/${note.id}");
+              }
+            } else {
+              context.push("/readNote/${note.id}");
+            }
+          },
           onLongPress: () {
             _longPressDialogHandler(context, ref);
           },
@@ -80,9 +114,19 @@ class NoteCard extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      DateFormat.yMMMd().format(note.updated),
-                      style: const TextStyle(fontSize: 12),
+                    Expanded(
+                      child: Text(
+                        DateFormat.yMMMd().format(note.updated),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    if (note.secured)
+                      const Icon(
+                        Icons.lock,
+                        size: 18,
+                      ),
+                    const SizedBox(
+                      width: 8,
                     ),
                     if (note.pinned)
                       const Icon(
