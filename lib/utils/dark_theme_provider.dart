@@ -18,8 +18,12 @@ class DarkThemeNotifier extends StateNotifier<bool> {
     state = darkMode ?? false;
   }
 
-  void toggle() {
-    state = !state;
+  void toggle({bool? dark}) {
+    if (dark != null) {
+      state = dark;
+    } else {
+      state = !state;
+    }
     // persist the user's preffered mode.
     prefs.setBool("darkMode", state);
   }

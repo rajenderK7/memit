@@ -33,6 +33,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   late TextEditingController _textEditingController;
   late bool _isUpdating;
   bool _isPinned = false;
+  bool _isSecured = false;
   int? _currentCollectionId;
   bool _isLoading = false;
   bool _canSaveOrUpdate = false;
@@ -62,7 +63,9 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       _saveNote();
     }
     ref.read(notesProvider.notifier).refreshNotes();
-    final String content = _isUpdating ? "Note updated" : "Note created";
+    final String content = _isUpdating
+        ? "Note updated successfully ✅"
+        : "Note created successfully ✅";
     ScaffoldMessenger.of(context).showSnackBar(customSnackbar(content));
     context.pop();
   }
@@ -76,7 +79,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       updated: DateTime.now(),
       pinned: _isPinned,
       color: 0,
-      secured: false,
+      secured: _isSecured,
       collection: _currentCollectionId ?? -1,
     );
 
@@ -93,7 +96,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       updated: DateTime.now(),
       pinned: _isPinned,
       color: 0,
-      secured: false,
+      secured: _isSecured,
       collection: _currentCollectionId ?? -1,
     );
     await DBHelper.instance.updateNote(note);
@@ -105,6 +108,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     });
     _isUpdating = true;
     _isPinned = widget.note!.pinned;
+    _isSecured = widget.note!.secured;
     _currentCollectionId = widget.note!.collection;
     var noteJSON = jsonDecode(widget.note!.note);
     _textEditingController = TextEditingController(text: widget.note!.title);
@@ -286,6 +290,30 @@ class _CreatePageState extends ConsumerState<CreatePage> {
         actions: [
           IconButton(
             onPressed: () {
+              final securedPrefs = ref.read(passcodeProvider);
+              if (securedPrefs == null) {
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return const AlertDialog(
+                        title: Text("Security passcode not set"),
+                        content:
+                            Text("Add a security code in the settings page."),
+                      );
+                    });
+              } else {
+                setState(() {
+                  _isSecured = !_isSecured;
+                });
+              }
+            },
+            icon: _isSecured
+                ? const Icon(Icons.lock)
+                : const Icon(Icons.lock_open),
+            tooltip: "Secure Note",
+          ),
+          IconButton(
+            onPressed: () {
               _showCollectionsDialog(context);
             },
             icon: _currentCollectionId == null || _currentCollectionId == -1
@@ -311,12 +339,6 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             disabledColor: Colors.grey,
             tooltip: "Save Note",
           ),
-          // TODO: Implement the more button feature if required.
-          // IconButton(
-          //   onPressed: () {},
-          //   icon: const Icon(Icons.more_vert),
-          //   tooltip: "More",
-          // ),
           const SizedBox(
             width: 5,
           ),

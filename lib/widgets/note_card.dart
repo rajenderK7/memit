@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:intl/intl.dart';
 import 'package:memit/models/note.dart';
 import 'package:memit/pages/home_page.dart';
 import 'package:go_router/go_router.dart';
 
 class NoteCard extends ConsumerWidget {
-  const NoteCard({
+  NoteCard({
     Key? key,
     required this.note,
   }) : super(key: key);
 
   final Note note;
+  final _painter = Paint()
+    ..style = PaintingStyle.fill
+    ..color = Colors.grey
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
   // void _longPressDialog(BuildContext context, WidgetRef ref) {
   //   showDialog(
@@ -30,6 +35,37 @@ class NoteCard extends ConsumerWidget {
   //   );
   // }
 
+  void _onTap(BuildContext context, WidgetRef ref, {bool delete = false}) {
+    screenLock(
+      context: context,
+      title: const Text("Enter passcode to continue"),
+      correctString: ref.read(passcodeProvider).toString(),
+      cancelButton: const Icon(Icons.close),
+      onCancelled: () => context.pop(),
+      onUnlocked: () {
+        context.pop(); // pop the lock screen.
+        if (delete) {
+          ref.read(notesProvider.notifier).deleteNote(note.id!);
+          context.pop(); // delete dialog context
+        } else {
+          context.push("/readNote/${note.id}");
+        }
+      },
+      footer: Padding(
+        padding: const EdgeInsets.only(top: 20.0),
+        child: TextButton(
+          onPressed: () {
+            context.pop();
+            context.push("/forgot_passcode");
+          },
+          child: const Text(
+            "Forgot passcode",
+          ),
+        ),
+      ),
+    );
+  }
+
   void _longPressDialogHandler(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -45,8 +81,12 @@ class NoteCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                ref.read(notesProvider.notifier).deleteNote(note.id!);
-                context.pop();
+                if (note.secured) {
+                  _onTap(context, ref, delete: true);
+                } else {
+                  ref.read(notesProvider.notifier).deleteNote(note.id!);
+                  context.pop(); // delete dialog context
+                }
               },
               child: const Text("Delete"),
             ),
@@ -68,7 +108,17 @@ class NoteCard extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         child: InkWell(
           borderRadius: BorderRadius.circular(12.0),
-          onTap: () => context.push("/readNote/${note.id}"),
+          onTap: () {
+            if (ref.read(passcodeProvider) != null) {
+              if (note.secured) {
+                _onTap(context, ref);
+              } else {
+                context.push("/readNote/${note.id}");
+              }
+            } else {
+              context.push("/readNote/${note.id}");
+            }
+          },
           onLongPress: () {
             _longPressDialogHandler(context, ref);
           },
@@ -80,14 +130,25 @@ class NoteCard extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      DateFormat.yMMMd().format(note.updated),
-                      style: const TextStyle(fontSize: 12),
+                    Expanded(
+                      child: Text(
+                        DateFormat.yMMMd().format(note.updated),
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
+                    if (note.secured)
+                      const Icon(
+                        Icons.lock,
+                        size: 17,
+                      ),
+                    if (note.pinned)
+                      const SizedBox(
+                        width: 5,
+                      ),
                     if (note.pinned)
                       const Icon(
                         Icons.push_pin_rounded,
-                        size: 18,
+                        size: 17,
                       ),
                   ],
                 ),
@@ -112,7 +173,10 @@ class NoteCard extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 13,
                       overflow: TextOverflow.ellipsis,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: !note.secured
+                          ? Theme.of(context).colorScheme.secondary
+                          : null,
+                      foreground: note.secured ? _painter : null,
                     ),
                     maxLines: 4,
                   ),

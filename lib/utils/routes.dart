@@ -4,6 +4,7 @@ import 'package:memit/models/note.dart';
 import 'package:memit/pages/collection_notes_page.dart';
 import 'package:memit/pages/collections_page.dart';
 import 'package:memit/pages/create_page.dart';
+import 'package:memit/pages/forgot_passcode_page.dart';
 import 'package:memit/pages/home_page.dart';
 import 'package:memit/pages/main_scaffold.dart';
 import 'package:memit/pages/onboarding_page.dart';
@@ -88,6 +89,11 @@ final GoRouter router = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       path: "/onboarding",
       builder: (context, state) => const OnboardingPage(),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+      path: "/forgot_passcode",
+      builder: (context, state) => const ForgotPasscodePage(),
     )
   ],
   redirect: (context, state) async {
