@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:memit/pages/home_page.dart';
 import 'package:memit/utils/dark_theme_provider.dart';
 import 'package:memit/utils/user_info_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -15,16 +16,30 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   final TextEditingController _controller = TextEditingController();
+  List<String>? qna;
+  bool loading = false;
 
   @override
   void initState() {
     super.initState();
+    _loadQnA();
     _loadInfo();
     ref.read(passcodeProvider);
   }
 
   void _loadInfo() async {
     _controller.text = ref.read(userInfoProvider);
+  }
+
+  void _loadQnA() async {
+    setState(() {
+      loading = true;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    qna = prefs.getStringList("qna");
+    setState(() {
+      loading = false;
+    });
   }
 
   void _setPasscodeHandler() {
@@ -34,12 +49,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       context: context,
       onConfirmed: (newPasscode) {
         ref.read(passcodeProvider.notifier).setPasscode(newPasscode);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Passcode set successfully ✅"),
-          ),
-        );
-        context.pop();
+        if (qna == null) {
+          context.pop();
+          context.push("/forgot_passcode");
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Passcode set successfully ✅"),
+            ),
+          );
+          context.pop();
+        }
       },
     );
   }
@@ -56,11 +76,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           context.pop(); // pop the lock screen.
           _setPasscodeHandler();
         },
-        // customizedButtonChild: const Icon(Icons.fingerprint),
         footer: Padding(
           padding: const EdgeInsets.only(top: 20.0),
           child: TextButton(
-            onPressed: () {},
+            onPressed: () {
+              context.pop();
+              context.push("/forgot_passcode");
+            },
             child: const Text(
               "Forgot passcode",
             ),
@@ -178,7 +200,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Icons.lock,
               color: Colors.amber,
             ),
-            title: const Text("Set Passcode"),
+            title: const Text("Set / Reset Passcode"),
           ),
           ListTile(
             onTap: _themeDialog,

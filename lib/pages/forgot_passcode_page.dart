@@ -13,9 +13,12 @@ class ForgotPasscodePage extends ConsumerStatefulWidget {
 }
 
 class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
+  final TextEditingController _questionQnAController = TextEditingController();
+  final TextEditingController _answerQnAController = TextEditingController();
   final TextEditingController _answerController = TextEditingController();
   String? err;
   bool loading = false;
+  bool validQnA = false;
   List<String>? qna;
 
   @override
@@ -27,6 +30,8 @@ class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
   @override
   void dispose() {
     _answerController.dispose();
+    _questionQnAController.dispose();
+    _answerQnAController.dispose();
     super.dispose();
   }
 
@@ -59,6 +64,108 @@ class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
     );
   }
 
+  void setQnA() async {
+    final prefs = await SharedPreferences.getInstance();
+    qna = prefs.getStringList("qna");
+    final q = _questionQnAController.text.trim();
+    final a = _answerQnAController.text.trim();
+    prefs.setStringList("qna", [q, a]);
+    _questionQnAController.clear();
+    _answerQnAController.clear();
+    _loadQnA();
+  }
+
+  void _qnaEditor() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Enter security question"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _questionQnAController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      label: Text("Question"),
+                      hintText: "Enter a question that only you can answer",
+                      hintStyle: TextStyle(fontSize: 12),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        validQnA = _questionQnAController.text.isNotEmpty &&
+                            _answerQnAController.text.isNotEmpty;
+                      });
+                    },
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  TextField(
+                    controller: _answerQnAController,
+                    decoration: const InputDecoration(
+                      label: Text("Answer"),
+                      hintText: "Tip: Use all lower case letters",
+                      hintStyle: TextStyle(fontSize: 12),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        validQnA = _answerQnAController.text.isNotEmpty &&
+                            _questionQnAController.text.isNotEmpty;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _questionQnAController.clear();
+                    _answerQnAController.clear();
+                    context.pop();
+                  },
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: validQnA
+                      ? () {
+                          setQnA();
+                          context.pop();
+                        }
+                      : null,
+                  child: const Text("Save"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _resetQuestionHandler(BuildContext ctx) {
+    if (qna != null) {
+      screenLock(
+        context: context,
+        title: const Text("Enter passcode to continue"),
+        correctString: ref.read(passcodeProvider).toString(),
+        cancelButton: const Icon(Icons.close),
+        onCancelled: () => ctx.pop(),
+        onUnlocked: () {
+          ctx.pop();
+          _qnaEditor();
+        },
+      );
+    } else {
+      _qnaEditor();
+    }
+  }
+
   void _validateAns(BuildContext ctx, String answer) {
     if (answer.trim() == qna![1]) {
       setState(() {
@@ -88,9 +195,9 @@ class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
                         const SizedBox(
                           height: 20,
                         ),
-                        const Text(
-                          "What is your favorite color ?",
-                          style: TextStyle(
+                        Text(
+                          qna![0],
+                          style: const TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(
@@ -114,7 +221,6 @@ class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
                             }
                           },
                           onSubmitted: (answer) {
-                            // TODO: Validate answer
                             _validateAns(context, answer);
                           },
                         ),
@@ -126,9 +232,52 @@ class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
                               style: const TextStyle(color: Colors.red),
                             ),
                           ),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        Row(
+                          children: const [
+                            Expanded(
+                              child: Divider(
+                                endIndent: 10,
+                                thickness: 0.1,
+                              ),
+                            ),
+                            Text("or"),
+                            Expanded(
+                              child: Divider(
+                                indent: 10,
+                                thickness: 0.1,
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 30,
+                        ),
                       ],
                     ),
-                  // TODO: Set or Reset QnA
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _answerController.clear();
+                        _resetQuestionHandler(context);
+                      },
+                      child: (qna != null)
+                          ? const Text("Reset security question")
+                          : const Text("Set security question"),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  const Text(
+                    "Memit strongly recommends to set a security question if not already set 😀",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.orangeAccent,
+                    ),
+                  ),
                 ],
               ),
             ),

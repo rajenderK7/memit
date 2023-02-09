@@ -72,7 +72,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ),
           const SizedBox(height: 30.0),
           const Text(
-            "With Memit take notes, todos and\nanything you want in a rich editing environment 🚀",
+            "With Memit take notes, todos and\nanything you want in a secure and rich editing environment 🚀",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,

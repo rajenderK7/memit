@@ -7,12 +7,16 @@ import 'package:memit/pages/home_page.dart';
 import 'package:go_router/go_router.dart';
 
 class NoteCard extends ConsumerWidget {
-  const NoteCard({
+  NoteCard({
     Key? key,
     required this.note,
   }) : super(key: key);
 
   final Note note;
+  final _painter = Paint()
+    ..style = PaintingStyle.fill
+    ..color = Colors.grey
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
   // void _longPressDialog(BuildContext context, WidgetRef ref) {
   //   showDialog(
@@ -31,7 +35,7 @@ class NoteCard extends ConsumerWidget {
   //   );
   // }
 
-  void _onTap(BuildContext context, WidgetRef ref) {
+  void _onTap(BuildContext context, WidgetRef ref, {bool delete = false}) {
     screenLock(
       context: context,
       title: const Text("Enter passcode to continue"),
@@ -40,12 +44,20 @@ class NoteCard extends ConsumerWidget {
       onCancelled: () => context.pop(),
       onUnlocked: () {
         context.pop(); // pop the lock screen.
-        context.push("/readNote/${note.id}");
+        if (delete) {
+          ref.read(notesProvider.notifier).deleteNote(note.id!);
+          context.pop(); // delete dialog context
+        } else {
+          context.push("/readNote/${note.id}");
+        }
       },
       footer: Padding(
         padding: const EdgeInsets.only(top: 20.0),
         child: TextButton(
-          onPressed: () {},
+          onPressed: () {
+            context.pop();
+            context.push("/forgot_passcode");
+          },
           child: const Text(
             "Forgot passcode",
           ),
@@ -69,8 +81,12 @@ class NoteCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                ref.read(notesProvider.notifier).deleteNote(note.id!);
-                context.pop();
+                if (note.secured) {
+                  _onTap(context, ref, delete: true);
+                } else {
+                  ref.read(notesProvider.notifier).deleteNote(note.id!);
+                  context.pop(); // delete dialog context
+                }
               },
               child: const Text("Delete"),
             ),
@@ -123,15 +139,16 @@ class NoteCard extends ConsumerWidget {
                     if (note.secured)
                       const Icon(
                         Icons.lock,
-                        size: 18,
+                        size: 17,
                       ),
-                    const SizedBox(
-                      width: 8,
-                    ),
+                    if (note.pinned)
+                      const SizedBox(
+                        width: 5,
+                      ),
                     if (note.pinned)
                       const Icon(
                         Icons.push_pin_rounded,
-                        size: 18,
+                        size: 17,
                       ),
                   ],
                 ),
@@ -156,7 +173,10 @@ class NoteCard extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 13,
                       overflow: TextOverflow.ellipsis,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: !note.secured
+                          ? Theme.of(context).colorScheme.secondary
+                          : null,
+                      foreground: note.secured ? _painter : null,
                     ),
                     maxLines: 4,
                   ),
