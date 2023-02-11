@@ -62,7 +62,7 @@ class _CollectionNotesPageState extends State<CollectionNotesPage> {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasData && snapshot.data!.isEmpty) {
                     return const Center(
-                      child: Text("No notes added to this collection 😥"),
+                      child: Text("No notes added to this collection."),
                     );
                   } else if (snapshot.hasData) {
                     return ListView.builder(
@@ -76,7 +76,7 @@ class _CollectionNotesPageState extends State<CollectionNotesPage> {
                     );
                   }
                   return const Center(
-                    child: Text("No notes added to this collection 😥"),
+                    child: Text("No notes added to this collection."),
                   );
                 },
               ),

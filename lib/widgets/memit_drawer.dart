@@ -25,8 +25,9 @@ class MemitDrawer extends StatelessWidget {
                 return Center(
                   child: Text(
                     'Hi $username!',
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.surface),
+                    style: TextStyle(
+                        fontSize: 24,
+                        color: Theme.of(context).colorScheme.surface),
                   ),
                 );
               },

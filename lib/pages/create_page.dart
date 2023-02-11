@@ -63,9 +63,8 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       _saveNote();
     }
     ref.read(notesProvider.notifier).refreshNotes();
-    final String content = _isUpdating
-        ? "Note updated successfully ✅"
-        : "Note created successfully ✅";
+    final String content =
+        _isUpdating ? "Note updated successfully" : "Note created successfully";
     ScaffoldMessenger.of(context).showSnackBar(customSnackbar(content));
     context.pop();
   }

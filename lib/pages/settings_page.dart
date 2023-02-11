@@ -55,7 +55,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Passcode set successfully ✅"),
+              content: Text("Passcode set successfully"),
             ),
           );
           context.pop();
@@ -185,7 +185,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         .updateUsername(_controller.text.trim());
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Username saved successfully 😀"),
+                        content: Text("Username saved successfully"),
                       ),
                     );
                   },
@@ -198,7 +198,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onTap: _passcodeHandler,
             leading: const Icon(
               Icons.lock,
-              color: Colors.amber,
             ),
             title: const Text("Set / Reset Passcode"),
           ),
@@ -206,7 +205,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onTap: _themeDialog,
             leading: const Icon(
               Icons.color_lens,
-              color: Colors.pink,
             ),
             title: const Text("Theme"),
           ),
@@ -214,7 +212,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onTap: () => context.push("/forgot_passcode"),
             leading: const Icon(
               Icons.lock_reset,
-              color: Colors.grey,
             ),
             title: const Text("Forgot Passcode"),
           ),

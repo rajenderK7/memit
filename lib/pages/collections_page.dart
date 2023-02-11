@@ -110,7 +110,7 @@ class _CollectionsPageState extends ConsumerState<CollectionsPage> {
                   child: Container(
                     margin: const EdgeInsets.only(top: 20.0),
                     child:
-                        const Text("Make collections to organize your work 😄"),
+                        const Text("Make collections to organize your work."),
                   ),
                 )
               : Expanded(

@@ -25,7 +25,7 @@ class HomePage extends ConsumerWidget {
     final notes = ref.watch(notesProvider);
     ref.watch(passcodeProvider);
     return notes.isEmpty
-        ? const Center(child: Text("Add notes, todos, scripts and more..😀"))
+        ? const Center(child: Text("Add notes, todos, scripts and more.."))
         : Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6.0),
             child: ListView.builder(

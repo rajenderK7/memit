@@ -55,7 +55,7 @@ class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
         ref.read(passcodeProvider.notifier).setPasscode(newPasscode);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Passcode reset successfully ✅"),
+            content: Text("Passcode reset successfully"),
           ),
         );
         ctx.pop();
@@ -272,7 +272,7 @@ class _ForgotPasscodePageState extends ConsumerState<ForgotPasscodePage> {
                     height: 10,
                   ),
                   const Text(
-                    "Memit strongly recommends to set a security question if not already set 😀",
+                    "Memit strongly recommends to set a security question if not already set.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.orangeAccent,
