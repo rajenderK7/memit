@@ -24,9 +24,9 @@ class MemitDrawer extends StatelessWidget {
                 final username = ref.watch(userInfoProvider);
                 return Center(
                   child: Text(
-                    'Hi $username!',
+                    'Hi, $username 👋',
                     style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         color: Theme.of(context).colorScheme.surface),
                   ),
                 );

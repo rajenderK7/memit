@@ -36,7 +36,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   bool _isSecured = false;
   int? _currentCollectionId;
   bool _isLoading = false;
-  bool _canSaveOrUpdate = false;
+  // bool _canSaveOrUpdate = false;
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _editorFocusNode = FocusNode();
   final ScrollController _editorScrollController = ScrollController();
@@ -51,12 +51,23 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     return desc.replaceAll(RegExp(r'(\n){2,}'), "\n");
   }
 
-  SnackBar customSnackbar(String content) {
-    return SnackBar(content: Text(content));
+  SnackBar customSnackbar(String content, {Color? color}) {
+    return SnackBar(
+      content: Text(
+        content,
+        style: TextStyle(color: color),
+      ),
+    );
   }
 
   void _saveOrUpdateNote() {
-    if (!_canSaveOrUpdate) return;
+    if (_textEditingController.text.isEmpty &&
+        _quillController.document.isEmpty()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        customSnackbar("Both the title and content can't be empty!"),
+      );
+      return;
+    }
     if (_isUpdating) {
       _updateNote();
     } else {
@@ -111,7 +122,6 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     _currentCollectionId = widget.note!.collection;
     var noteJSON = jsonDecode(widget.note!.note);
     _textEditingController = TextEditingController(text: widget.note!.title);
-    _canSaveOrUpdate = true;
     _quillController = quill.QuillController(
       document: quill.Document.fromJson(noteJSON),
       selection: const TextSelection.collapsed(offset: 0),
@@ -278,9 +288,8 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            if (_canSaveOrUpdate) {
-              _saveOrUpdateNote();
-            } else {
+            if (_textEditingController.text.isEmpty &&
+                _quillController.document.isEmpty()) {
               context.pop();
             }
           },
@@ -333,7 +342,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             tooltip: "Pin this note",
           ),
           IconButton(
-            onPressed: _canSaveOrUpdate ? _saveOrUpdateNote : null,
+            onPressed: _saveOrUpdateNote,
             icon: const Icon(Icons.check_rounded),
             disabledColor: Colors.grey,
             tooltip: "Save Note",
@@ -387,58 +396,23 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                   ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          autofocus: true,
-                          textCapitalization: TextCapitalization.sentences,
-                          controller: _textEditingController,
-                          focusNode: _titleFocusNode,
-                          onSubmitted: (value) {
-                            FocusScope.of(context)
-                                .requestFocus(_editorFocusNode);
-                          },
-                          decoration: const InputDecoration(
-                            border: UnderlineInputBorder(),
-                            labelText: 'Title',
-                            labelStyle: TextStyle(fontSize: 16),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              if (_textEditingController.text.isNotEmpty) {
-                                _canSaveOrUpdate = true;
-                              } else {
-                                _canSaveOrUpdate = false;
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          final bool showMultiRow =
-                              ref.watch(showMultiRowProvider);
-                          return IconButton(
-                            onPressed: () {
-                              bool showMultiRowValue =
-                                  ref.read(showMultiRowProvider);
-                              ref.read(showMultiRowProvider.notifier).state =
-                                  !showMultiRowValue;
-                            },
-                            icon: showMultiRow
-                                ? const Icon(Icons.expand_more)
-                                : const Icon(Icons.expand_less),
-                            tooltip: "Show all controls",
-                          );
-                        },
-                      ),
-                    ],
+                  child: TextField(
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.sentences,
+                    controller: _textEditingController,
+                    focusNode: _titleFocusNode,
+                    onSubmitted: (value) {
+                      FocusScope.of(context).requestFocus(_editorFocusNode);
+                    },
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(),
+                      labelText: 'Title',
+                      labelStyle: TextStyle(fontSize: 16),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
                 const SizedBox(
@@ -464,47 +438,42 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                     ],
                   ),
                 ),
-                Consumer(
-                  builder: (context, ref, child) {
-                    bool showMultiRow = ref.watch(showMultiRowProvider);
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: BorderDirectional(
-                          top: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                        ),
+                Container(
+                  decoration: BoxDecoration(
+                    border: BorderDirectional(
+                      top: BorderSide(
+                        color: Theme.of(context).dividerColor,
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: Center(
-                        child: quill.QuillToolbar.basic(
-                          controller: _quillController,
-                          multiRowsDisplay: showMultiRow,
-                          showAlignmentButtons: false,
-                          showLeftAlignment: false,
-                          showCenterAlignment: false,
-                          showRightAlignment: false,
-                          showJustifyAlignment: false,
-                          showIndent: false,
-                          showSearchButton: false,
-                          showBackgroundColorButton: false,
-                          showClearFormat: false,
-                          showCodeBlock: false,
-                          showInlineCode: false,
-                          fontFamilyValues: const {
-                            "Sans Serif": "Sans Serif",
-                            "Serif": "Serif",
-                          },
-                          embedButtons: FlutterQuillEmbeds.buttons(
-                            onImagePickCallback: _onImagePickCallback,
-                            showCameraButton: false,
-                            showVideoButton: false,
-                          ),
-                        ),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 5.0),
+                  child: Center(
+                    child: quill.QuillToolbar.basic(
+                      controller: _quillController,
+                      multiRowsDisplay: false,
+                      showAlignmentButtons: false,
+                      showLeftAlignment: false,
+                      showCenterAlignment: false,
+                      showRightAlignment: false,
+                      showJustifyAlignment: false,
+                      showIndent: false,
+                      showSearchButton: false,
+                      showBackgroundColorButton: false,
+                      showClearFormat: false,
+                      showCodeBlock: false,
+                      showInlineCode: false,
+                      fontFamilyValues: const {
+                        "Sans Serif": "Sans Serif",
+                        "Serif": "Serif",
+                      },
+                      embedButtons: FlutterQuillEmbeds.buttons(
+                        onImagePickCallback: _onImagePickCallback,
+                        showCameraButton: false,
+                        showVideoButton: false,
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                )
               ],
             ),
     );

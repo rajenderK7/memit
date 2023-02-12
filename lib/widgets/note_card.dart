@@ -155,15 +155,16 @@ class NoteCard extends ConsumerWidget {
                 const SizedBox(
                   height: 6.0,
                 ),
-                Text(
-                  note.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                if (note.title.isNotEmpty)
+                  Text(
+                    note.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
                 SizedBox(
                   height: note.desc.isNotEmpty ? 4.0 : 0.0,
                 ),
