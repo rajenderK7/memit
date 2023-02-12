@@ -187,10 +187,11 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
                           ],
                         ),
                         const SizedBox(
-                          height: 5,
+                          height: 6,
                         ),
                         if (_note.title.isNotEmpty)
                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 _note.title,
@@ -208,6 +209,7 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
                   Expanded(
                     child: quill.QuillEditor(
                       controller: _quillController,
+                      showCursor: false,
                       readOnly: true,
                       autoFocus: false,
                       expands: true,
