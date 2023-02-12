@@ -189,14 +189,19 @@ class _ReadNotePageState extends ConsumerState<ReadNotePage> {
                         const SizedBox(
                           height: 5,
                         ),
-                        Text(
-                          _note.title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
+                        if (_note.title.isNotEmpty)
+                          Column(
+                            children: [
+                              Text(
+                                _note.title,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Divider(),
+                            ],
                           ),
-                        ),
-                        const Divider(),
                       ],
                     ),
                   ),
