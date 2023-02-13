@@ -245,6 +245,15 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     });
   }
 
+  Future<String?> _onImagePickCallback(File file) async {
+    // Copies the picked file from temporary cache to applications directory
+    final appDocDir = await path.getApplicationDocumentsDirectory();
+    final copiedFile =
+        await file.copy('${appDocDir.path}/${p.basename(file.path)}');
+
+    return copiedFile.path.toString();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -260,17 +269,6 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     }
     ref.read(collectionsProvider);
   }
-
-  Future<String?> _onImagePickCallback(File file) async {
-    // Copies the picked file from temporary cache to applications directory
-    final appDocDir = await path.getApplicationDocumentsDirectory();
-    final copiedFile =
-        await file.copy('${appDocDir.path}/${p.basename(file.path)}');
-
-    return copiedFile.path.toString();
-  }
-
-  void _saveOnBackUtil() {}
 
   @override
   void dispose() {

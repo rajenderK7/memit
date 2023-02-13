@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:memit/models/note.dart';
 import 'package:memit/pages/home_page.dart';
 import 'package:go_router/go_router.dart';
+import 'package:memit/utils/routes.dart';
 
 class NoteCard extends ConsumerWidget {
   NoteCard({
@@ -36,8 +37,10 @@ class NoteCard extends ConsumerWidget {
   // }
 
   void _onTap(BuildContext context, WidgetRef ref, {bool delete = false}) {
+    final overlayCtx =
+        ref.read(globalNavigatorProvider).currentState?.overlay?.context;
     screenLock(
-      context: context,
+      context: overlayCtx ?? context,
       title: const Text("Enter passcode to continue"),
       correctString: ref.read(passcodeProvider).toString(),
       cancelButton: const Icon(Icons.close),

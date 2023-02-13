@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:memit/models/note.dart';
 import 'package:memit/pages/collection_notes_page.dart';
@@ -31,6 +32,7 @@ final GlobalKey<NavigatorState> _rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
 final GlobalKey<NavigatorState> _shellNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'shell');
+final globalNavigatorProvider = Provider((ref) => _rootNavigatorKey);
 
 final GoRouter router = GoRouter(
   navigatorKey: _rootNavigatorKey,
