@@ -36,7 +36,6 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   bool _isSecured = false;
   int? _currentCollectionId;
   bool _isLoading = false;
-  // bool _canSaveOrUpdate = false;
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _editorFocusNode = FocusNode();
   final ScrollController _editorScrollController = ScrollController();
@@ -271,6 +270,8 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     return copiedFile.path.toString();
   }
 
+  void _saveOnBackUtil() {}
+
   @override
   void dispose() {
     _textEditingController.dispose();
@@ -284,198 +285,212 @@ class _CreatePageState extends ConsumerState<CreatePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            if (_textEditingController.text.isEmpty &&
-                _quillController.document.isEmpty()) {
-              context.pop();
-            }
-          },
-          icon: const Icon(Icons.arrow_back),
-        ),
-        actions: [
-          IconButton(
+    return WillPopScope(
+      onWillPop: () async {
+        if (_textEditingController.text.isNotEmpty ||
+            !_quillController.document.isEmpty()) {
+          _saveOrUpdateNote();
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
             onPressed: () {
-              final securedPrefs = ref.read(passcodeProvider);
-              if (securedPrefs == null) {
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return const AlertDialog(
-                        title: Text("Security passcode not set"),
-                        content:
-                            Text("Add a security code in the settings page."),
-                      );
-                    });
+              if (_textEditingController.text.isEmpty &&
+                  _quillController.document.isEmpty()) {
+                context.pop();
               } else {
-                setState(() {
-                  _isSecured = !_isSecured;
-                });
+                _saveOrUpdateNote();
               }
             },
-            icon: _isSecured
-                ? const Icon(Icons.lock)
-                : const Icon(Icons.lock_open),
-            tooltip: "Secure Note",
+            icon: const Icon(Icons.arrow_back),
           ),
-          IconButton(
-            onPressed: () {
-              _showCollectionsDialog(context);
-            },
-            icon: _currentCollectionId == null || _currentCollectionId == -1
-                ? const Icon(Icons.bookmark_add_outlined)
-                : const Icon(Icons.bookmark),
-            disabledColor: Colors.grey,
-            tooltip: "Add to collection",
-          ),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _isPinned = !_isPinned;
-              });
-            },
-            icon: _isPinned
-                ? const Icon(Icons.push_pin_rounded)
-                : const Icon(Icons.push_pin_outlined),
-            tooltip: "Pin this note",
-          ),
-          IconButton(
-            onPressed: _saveOrUpdateNote,
-            icon: const Icon(Icons.check_rounded),
-            disabledColor: Colors.grey,
-            tooltip: "Save Note",
-          ),
-          const SizedBox(
-            width: 5,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const CircularProgressIndicator()
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (_currentCollectionId != null && _currentCollectionId != -1)
-                  FutureBuilder(
-                    future: DBHelper.instance
-                        .getCollectionById(_currentCollectionId!),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                              top: 8.0, left: 12.0, right: 12.0),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.bookmark,
-                                color: Theme.of(context).colorScheme.secondary,
-                                size: 16,
-                              ),
-                              const SizedBox(
-                                width: 5.0,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  snapshot.data!.title,
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
+          actions: [
+            IconButton(
+              onPressed: () {
+                final securedPrefs = ref.read(passcodeProvider);
+                if (securedPrefs == null) {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return const AlertDialog(
+                          title: Text("Security passcode not set"),
+                          content:
+                              Text("Add a security code in the settings page."),
+                        );
+                      });
+                } else {
+                  setState(() {
+                    _isSecured = !_isSecured;
+                  });
+                }
+              },
+              icon: _isSecured
+                  ? const Icon(Icons.lock)
+                  : const Icon(Icons.lock_open),
+              tooltip: "Secure Note",
+            ),
+            IconButton(
+              onPressed: () {
+                _showCollectionsDialog(context);
+              },
+              icon: _currentCollectionId == null || _currentCollectionId == -1
+                  ? const Icon(Icons.bookmark_add_outlined)
+                  : const Icon(Icons.bookmark),
+              disabledColor: Colors.grey,
+              tooltip: "Add to collection",
+            ),
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _isPinned = !_isPinned;
+                });
+              },
+              icon: _isPinned
+                  ? const Icon(Icons.push_pin_rounded)
+                  : const Icon(Icons.push_pin_outlined),
+              tooltip: "Pin this note",
+            ),
+            IconButton(
+              onPressed: _saveOrUpdateNote,
+              icon: const Icon(Icons.check_rounded),
+              disabledColor: Colors.grey,
+              tooltip: "Save Note",
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const CircularProgressIndicator()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_currentCollectionId != null &&
+                      _currentCollectionId != -1)
+                    FutureBuilder(
+                      future: DBHelper.instance
+                          .getCollectionById(_currentCollectionId!),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                                top: 8.0, left: 12.0, right: 12.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.bookmark,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  size: 16,
+                                ),
+                                const SizedBox(
+                                  width: 5.0,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    snapshot.data!.title,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          );
+                        }
+                        return const SizedBox(
+                          height: 0.0,
                         );
-                      }
-                      return const SizedBox(
-                        height: 0.0,
-                      );
-                    },
-                  ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: TextField(
-                    autofocus: true,
-                    textCapitalization: TextCapitalization.sentences,
-                    controller: _textEditingController,
-                    focusNode: _titleFocusNode,
-                    onSubmitted: (value) {
-                      FocusScope.of(context).requestFocus(_editorFocusNode);
-                    },
-                    decoration: const InputDecoration(
-                      border: UnderlineInputBorder(),
-                      labelText: 'Title',
-                      labelStyle: TextStyle(fontSize: 16),
-                    ),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 10.0,
-                ),
-                Expanded(
-                  child: quill.QuillEditor(
-                    controller: _quillController,
-                    readOnly: false,
-                    autoFocus: false,
-                    expands: true,
-                    scrollable: true,
-                    scrollController: _editorScrollController,
-                    focusNode: _editorFocusNode,
-                    padding: MediaQuery.of(context).orientation ==
-                            Orientation.portrait
-                        ? const EdgeInsets.only(
-                            bottom: 8.0, left: 12.0, right: 12.0)
-                        : const EdgeInsets.symmetric(
-                            vertical: 5.0, horizontal: 20.0),
-                    embedBuilders: [
-                      ...FlutterQuillEmbeds.builders(),
-                    ],
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: BorderDirectional(
-                      top: BorderSide(
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 5.0),
-                  child: Center(
-                    child: quill.QuillToolbar.basic(
-                      controller: _quillController,
-                      multiRowsDisplay: false,
-                      showAlignmentButtons: false,
-                      showLeftAlignment: false,
-                      showCenterAlignment: false,
-                      showRightAlignment: false,
-                      showJustifyAlignment: false,
-                      showIndent: false,
-                      showSearchButton: false,
-                      showBackgroundColorButton: false,
-                      showClearFormat: false,
-                      showCodeBlock: false,
-                      showInlineCode: false,
-                      fontFamilyValues: const {
-                        "Sans Serif": "Sans Serif",
-                        "Serif": "Serif",
                       },
-                      embedButtons: FlutterQuillEmbeds.buttons(
-                        onImagePickCallback: _onImagePickCallback,
-                        showCameraButton: false,
-                        showVideoButton: false,
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: TextField(
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.sentences,
+                      controller: _textEditingController,
+                      focusNode: _titleFocusNode,
+                      onSubmitted: (value) {
+                        FocusScope.of(context).requestFocus(_editorFocusNode);
+                      },
+                      decoration: const InputDecoration(
+                        border: UnderlineInputBorder(),
+                        labelText: 'Title',
+                        labelStyle: TextStyle(fontSize: 16),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                )
-              ],
-            ),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  Expanded(
+                    child: quill.QuillEditor(
+                      controller: _quillController,
+                      readOnly: false,
+                      autoFocus: false,
+                      expands: true,
+                      scrollable: true,
+                      scrollController: _editorScrollController,
+                      focusNode: _editorFocusNode,
+                      padding: MediaQuery.of(context).orientation ==
+                              Orientation.portrait
+                          ? const EdgeInsets.only(
+                              bottom: 8.0, left: 12.0, right: 12.0)
+                          : const EdgeInsets.symmetric(
+                              vertical: 5.0, horizontal: 20.0),
+                      embedBuilders: [
+                        ...FlutterQuillEmbeds.builders(),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: BorderDirectional(
+                        top: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                    child: Center(
+                      child: quill.QuillToolbar.basic(
+                        controller: _quillController,
+                        multiRowsDisplay: false,
+                        showAlignmentButtons: false,
+                        showLeftAlignment: false,
+                        showCenterAlignment: false,
+                        showRightAlignment: false,
+                        showJustifyAlignment: false,
+                        showIndent: false,
+                        showSearchButton: false,
+                        showBackgroundColorButton: false,
+                        showClearFormat: false,
+                        showCodeBlock: false,
+                        showInlineCode: false,
+                        fontFamilyValues: const {
+                          "Sans Serif": "Sans Serif",
+                          "Serif": "Serif",
+                        },
+                        embedButtons: FlutterQuillEmbeds.buttons(
+                          onImagePickCallback: _onImagePickCallback,
+                          showCameraButton: false,
+                          showVideoButton: false,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+      ),
     );
   }
 }
