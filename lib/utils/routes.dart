@@ -52,8 +52,11 @@ final GoRouter router = GoRouter(
           ],
         ),
       ],
-      builder: (context, state, child) => MainScaffold(
-        child: child,
+      builder: (context, state, child) => HeroControllerScope(
+        controller: MaterialApp.createMaterialHeroController(),
+        child: MainScaffold(
+          child: child,
+        ),
       ),
     ),
     GoRoute(
