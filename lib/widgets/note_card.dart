@@ -51,7 +51,7 @@ class NoteCard extends ConsumerWidget {
           ref.read(notesProvider.notifier).deleteNote(note.id!);
           context.pop(); // delete dialog context
         } else {
-          context.push("/readNote/${note.id}");
+          context.push("/create", extra: note);
         }
       },
       footer: Padding(
@@ -116,10 +116,10 @@ class NoteCard extends ConsumerWidget {
               if (note.secured) {
                 _onTap(context, ref);
               } else {
-                context.push("/readNote/${note.id}");
+                context.push("/create", extra: note);
               }
             } else {
-              context.push("/readNote/${note.id}");
+              context.push("/create", extra: note);
             }
           },
           onLongPress: () {
