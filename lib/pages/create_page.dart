@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,13 +7,17 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:memit/db/db_helper.dart';
 import 'package:memit/models/collection.dart';
 import 'package:memit/models/note.dart';
 import 'package:memit/pages/collections_page.dart';
 import 'package:memit/pages/home_page.dart';
+import 'package:memit/utils/dark_theme_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart' as path;
+import 'package:share_plus/share_plus.dart';
+import 'package:screenshot/screenshot.dart';
 
 final showMultiRowProvider = StateProvider.autoDispose<bool>((ref) => false);
 
@@ -29,6 +34,7 @@ class CreatePage extends ConsumerStatefulWidget {
 }
 
 class _CreatePageState extends ConsumerState<CreatePage> {
+  final ScreenshotController _screenshotController = ScreenshotController();
   late quill.QuillController _quillController;
   late TextEditingController _textEditingController;
   late bool _isUpdating;
@@ -42,8 +48,8 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   final TextEditingController _collectionController = TextEditingController();
 
   String _createDesc(var json) {
-    String plainText = _quillController.document.toPlainText().toString();
-    if (plainText.isEmpty) return "";
+    if (_quillController.document.isEmpty()) return "";
+    String plainText = _quillController.document.toPlainText();
     String desc = plainText.length > 150
         ? plainText.substring(0, 151).trim()
         : plainText.trim();
@@ -59,6 +65,15 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     );
   }
 
+  bool notUpdated(String noteJson) {
+    return widget.note!.title == _textEditingController.text &&
+        widget.note!.note == noteJson &&
+        widget.note!.pinned == _isPinned &&
+        widget.note!.secured == _isSecured &&
+        widget.note!.color == 0 &&
+        widget.note!.collection == _currentCollectionId;
+  }
+
   void _saveOrUpdateNote() {
     if (_textEditingController.text.isEmpty &&
         _quillController.document.isEmpty()) {
@@ -67,10 +82,17 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       );
       return;
     }
+
+    var json = jsonEncode(_quillController.document.toDelta().toJson());
+
     if (_isUpdating) {
-      _updateNote();
+      if (notUpdated(json)) {
+        context.pop();
+        return;
+      }
+      _updateNote(json);
     } else {
-      _saveNote();
+      _saveNote(json);
     }
     ref.read(notesProvider.notifier).refreshNotes();
     final String content =
@@ -79,10 +101,10 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     context.pop();
   }
 
-  void _saveNote() async {
-    var json = jsonEncode(_quillController.document.toDelta().toJson());
-    final Note note = Note(
+  Note createNote(String json, {int? id}) {
+    return Note(
       title: _textEditingController.text,
+      id: id ?? widget.note?.id,
       desc: _createDesc(json),
       note: json,
       updated: DateTime.now(),
@@ -91,23 +113,15 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       secured: _isSecured,
       collection: _currentCollectionId ?? -1,
     );
+  }
 
+  void _saveNote(String json) async {
+    final note = createNote(json);
     await DBHelper.instance.insertNote(note);
   }
 
-  void _updateNote() async {
-    var json = jsonEncode(_quillController.document.toDelta().toJson());
-    final Note note = Note(
-      id: widget.note!.id,
-      title: _textEditingController.text,
-      desc: _createDesc(json),
-      note: json,
-      updated: DateTime.now(),
-      pinned: _isPinned,
-      color: 0,
-      secured: _isSecured,
-      collection: _currentCollectionId ?? -1,
-    );
+  void _updateNote(String json) async {
+    final note = createNote(json);
     await DBHelper.instance.updateNote(note);
   }
 
@@ -254,6 +268,130 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     return copiedFile.path.toString();
   }
 
+  // Future<void> _shareAsImage() async {
+  //   if (_quillController.document.isEmpty() &&
+  //       _textEditingController.text.isEmpty) return;
+  //   try {
+  //     RenderRepaintBoundary boundary = _globalKey.currentContext!
+  //         .findRenderObject() as RenderRepaintBoundary;
+
+  //     if (boundary.debugNeedsPaint) {
+  //       Timer(const Duration(seconds: 1), () => _shareAsImage());
+  //       return;
+  //     }
+
+  //     ui.Image image = await boundary.toImage();
+  //     final directory = (await path.getExternalStorageDirectory())!.path;
+  //     debugPrint(directory);
+
+  //     ByteData? byteData =
+  //         await image.toByteData(format: ui.ImageByteFormat.png);
+
+  //     if (byteData != null) {
+  //       Uint8List pngBytes = byteData.buffer.asUint8List();
+  //       String filePathAndName =
+  //           "$directory/note_${DateTime.now().toIso8601String().replaceAllMapped(RegExp(r'[-:.]'), (Match match) {
+  //         return '';
+  //       })}.png";
+  //       debugPrint(filePathAndName);
+  //       File imgFile = File(filePathAndName);
+  //       imgFile.writeAsBytesSync(pngBytes);
+  //       await Share.shareXFiles([XFile(imgFile.path)]);
+  //     }
+  //   } catch (e) {
+  //     debugPrint(e.toString());
+  //     ScaffoldMessenger.of(context)
+  //         .showSnackBar(const SnackBar(content: Text("Something went wrong!")));
+  //     return;
+  //   }
+  // }
+
+  Future<void> _shareAsImage() async {
+    if (_quillController.document.isEmpty() &&
+        _textEditingController.text.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Note is empty")));
+      return;
+    }
+    try {
+      final image = await _screenshotController.capture();
+
+      final directory = (await path.getExternalStorageDirectory())!.path;
+      debugPrint(directory);
+
+      if (image != null) {
+        String filePathAndName =
+            "$directory/note_${DateTime.now().toIso8601String().replaceAllMapped(RegExp(r'[-:.]'), (Match match) {
+          return '';
+        })}.png";
+        debugPrint(filePathAndName);
+        File imgFile = File(filePathAndName);
+        imgFile.writeAsBytesSync(image);
+        await Share.shareXFiles([XFile(imgFile.path)]);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Something went wrong!")));
+      return;
+    }
+  }
+
+  Future<void> _shareAsText() async {
+    String text = "";
+    if (_textEditingController.text.isNotEmpty) {
+      text += "${_textEditingController.text}\n";
+    }
+    text += _quillController.document.toPlainText();
+    if (text.isNotEmpty) {
+      await Share.share(text);
+    }
+  }
+
+  void _shareDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                onTap: () {
+                  context.pop();
+                  _shareAsText();
+                },
+                leading: const Icon(
+                  Icons.text_fields,
+                ),
+                title: const Text(
+                  "Share as Text",
+                ),
+                subtitle: Text(
+                  "Recommended for large notes",
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer),
+                ),
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                onTap: () {
+                  context.pop();
+                  _shareAsImage();
+                },
+                leading: const Icon(
+                  Icons.image,
+                ),
+                title: const Text("Share as Image"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -292,7 +430,11 @@ class _CreatePageState extends ConsumerState<CreatePage> {
         return true;
       },
       child: Scaffold(
+        backgroundColor:
+            !ref.read(darkThemeProvider) ? Colors.white : Colors.black,
         appBar: AppBar(
+          backgroundColor:
+              !ref.read(darkThemeProvider) ? Colors.white : Colors.black,
           leading: IconButton(
             onPressed: () {
               if (_textEditingController.text.isEmpty &&
@@ -351,10 +493,9 @@ class _CreatePageState extends ConsumerState<CreatePage> {
               tooltip: "Pin this note",
             ),
             IconButton(
-              onPressed: _saveOrUpdateNote,
-              icon: const Icon(Icons.check_rounded),
-              disabledColor: Colors.grey,
-              tooltip: "Save Note",
+              onPressed: _shareDialog,
+              icon: const Icon(Icons.share_rounded),
+              tooltip: "Share note",
             ),
             const SizedBox(
               width: 5,
@@ -366,50 +507,64 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_currentCollectionId != null &&
-                      _currentCollectionId != -1)
-                    FutureBuilder(
-                      future: DBHelper.instance
-                          .getCollectionById(_currentCollectionId!),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                                top: 8.0, left: 12.0, right: 12.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.bookmark,
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                  size: 16,
-                                ),
-                                const SizedBox(
-                                  width: 5.0,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    snapshot.data!.title,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                  if (_isUpdating)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: 8.0, left: 12.0, right: 12.0),
+                      child: Row(
+                        children: [
+                          if (_currentCollectionId != null &&
+                              _currentCollectionId != -1)
+                            Expanded(
+                              child: FutureBuilder(
+                                future: DBHelper.instance
+                                    .getCollectionById(_currentCollectionId!),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    return Row(
+                                      children: [
+                                        Icon(
+                                          Icons.bookmark,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(
+                                          width: 5.0,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            snapshot.data!.title,
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                  return const SizedBox(
+                                    height: 0.0,
+                                  );
+                                },
+                              ),
                             ),
-                          );
-                        }
-                        return const SizedBox(
-                          height: 0.0,
-                        );
-                      },
+                          Text(
+                            DateFormat("hh:mm a").format(widget.note!.updated),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: TextField(
-                      autofocus: true,
                       textCapitalization: TextCapitalization.sentences,
                       controller: _textEditingController,
                       focusNode: _titleFocusNode,
@@ -427,38 +582,47 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 10.0,
-                  ),
                   Expanded(
-                    child: quill.QuillEditor(
-                      controller: _quillController,
-                      readOnly: false,
-                      autoFocus: false,
-                      expands: true,
-                      scrollable: true,
-                      scrollController: _editorScrollController,
-                      focusNode: _editorFocusNode,
-                      padding: MediaQuery.of(context).orientation ==
-                              Orientation.portrait
-                          ? const EdgeInsets.only(
-                              bottom: 8.0, left: 12.0, right: 12.0)
-                          : const EdgeInsets.symmetric(
-                              vertical: 5.0, horizontal: 20.0),
-                      embedBuilders: [
-                        ...FlutterQuillEmbeds.builders(),
-                      ],
+                    child: Screenshot(
+                      controller: _screenshotController,
+                      child: Container(
+                        color: !ref.read(darkThemeProvider)
+                            ? Colors.white
+                            : Colors.black,
+                        padding: MediaQuery.of(context).orientation ==
+                                Orientation.portrait
+                            ? const EdgeInsets.only(
+                                top: 10.0, left: 12.0, right: 12.0)
+                            : const EdgeInsets.symmetric(
+                                vertical: 5.0, horizontal: 20.0),
+                        child: quill.QuillEditor(
+                          controller: _quillController,
+                          readOnly: false,
+                          autoFocus: !_isUpdating,
+                          expands: true,
+                          scrollable: true,
+                          showCursor:
+                              MediaQuery.of(context).viewInsets.bottom > 0,
+                          scrollController: _editorScrollController,
+                          focusNode: _editorFocusNode,
+                          padding: const EdgeInsets.all(0),
+                          embedBuilders: [
+                            ...FlutterQuillEmbeds.builders(),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   Container(
                     decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
                       border: BorderDirectional(
                         top: BorderSide(
                           color: Theme.of(context).dividerColor,
                         ),
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Center(
                       child: quill.QuillToolbar.basic(
                         controller: _quillController,
