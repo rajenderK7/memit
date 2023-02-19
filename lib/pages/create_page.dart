@@ -552,12 +552,29 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                                 },
                               ),
                             ),
-                          Text(
-                            DateFormat("hh:mm a").format(widget.note!.updated),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                DateFormat.yMMMd().format(widget.note!.updated),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              Text(
+                                DateFormat("hh:mm a")
+                                    .format(widget.note!.updated),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
