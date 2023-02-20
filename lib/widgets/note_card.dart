@@ -19,23 +19,6 @@ class NoteCard extends ConsumerWidget {
     ..color = Colors.grey
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
-  // void _longPressDialog(BuildContext context, WidgetRef ref) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: const Text("To be implemented"),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => context.pop(),
-  //             child: const Text("Cancel"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
   void _onTap(BuildContext context, WidgetRef ref, {bool delete = false}) {
     final overlayCtx =
         ref.read(globalNavigatorProvider).currentState?.overlay?.context;
@@ -172,17 +155,25 @@ class NoteCard extends ConsumerWidget {
                   height: note.desc.isNotEmpty ? 4.0 : 0.0,
                 ),
                 if (note.desc.isNotEmpty)
-                  Text(
-                    note.desc,
-                    style: TextStyle(
-                      fontSize: 13,
-                      overflow: TextOverflow.ellipsis,
-                      color: !note.secured
-                          ? Theme.of(context).colorScheme.secondary
-                          : null,
-                      foreground: note.secured ? _painter : null,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: note.secured
+                          ? const EdgeInsets.symmetric(horizontal: 4.0)
+                          : const EdgeInsets.all(0),
+                      child: Text(
+                        note.desc,
+                        style: TextStyle(
+                          fontSize: 13,
+                          overflow: TextOverflow.ellipsis,
+                          color: !note.secured
+                              ? Theme.of(context).colorScheme.secondary
+                              : null,
+                          foreground: note.secured ? _painter : null,
+                        ),
+                        maxLines: 4,
+                      ),
                     ),
-                    maxLines: 4,
                   ),
               ],
             ),
