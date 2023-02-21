@@ -13,7 +13,9 @@ import 'package:memit/models/collection.dart';
 import 'package:memit/models/note.dart';
 import 'package:memit/pages/collections_page.dart';
 import 'package:memit/pages/home_page.dart';
+import 'package:memit/utils/custom_snackbar.dart';
 import 'package:memit/utils/dark_theme_provider.dart';
+import 'package:memit/utils/more_actions.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart' as path;
 import 'package:share_plus/share_plus.dart';
@@ -54,15 +56,6 @@ class _CreatePageState extends ConsumerState<CreatePage> {
         ? plainText.substring(0, 151).trim()
         : plainText.trim();
     return desc.replaceAll(RegExp(r'(\n){2,}'), "\n");
-  }
-
-  SnackBar customSnackbar(String content, {Color? color}) {
-    return SnackBar(
-      content: Text(
-        content,
-        style: TextStyle(color: color),
-      ),
-    );
   }
 
   bool notUpdated(String noteJson) {
@@ -306,11 +299,20 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   //   }
   // }
 
+  Future<void> deleteTemporaryFile(File file) async {
+    try {
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<void> _shareAsImage() async {
     if (_quillController.document.isEmpty() &&
         _textEditingController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Note is empty")));
+      customSnackbar("Note is empty");
       return;
     }
     try {
@@ -328,6 +330,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
         File imgFile = File(filePathAndName);
         imgFile.writeAsBytesSync(image);
         await Share.shareXFiles([XFile(imgFile.path)]);
+        await deleteTemporaryFile(imgFile);
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -337,10 +340,44 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     }
   }
 
+  void _deleteNoteDialog() {
+    if (widget.note == null) {
+      context.pushReplacement("/");
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete this note ?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                context.pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(notesProvider.notifier).deleteNote(widget.note!.id!);
+                customSnackbar("Node deleted");
+                context.pushReplacement("/");
+              },
+              child: const Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _shareAsText() async {
     String text = "";
     if (_textEditingController.text.isNotEmpty) {
-      text += "${_textEditingController.text}\n";
+      text += _textEditingController.text;
+      if (!_quillController.document.isEmpty()) {
+        text += "\n";
+      }
     }
     text += _quillController.document.toPlainText();
     if (text.isNotEmpty) {
@@ -349,6 +386,12 @@ class _CreatePageState extends ConsumerState<CreatePage> {
   }
 
   void _shareDialog() {
+    if (_textEditingController.text.isEmpty &&
+        _quillController.document.isEmpty()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Title and content are empty")));
+      return;
+    }
     showDialog(
       context: context,
       builder: (context) {
@@ -390,6 +433,10 @@ class _CreatePageState extends ConsumerState<CreatePage> {
         );
       },
     );
+  }
+
+  bool _canDelete() {
+    return widget.note != null || !_quillController.document.isEmpty();
   }
 
   @override
@@ -473,16 +520,6 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             ),
             IconButton(
               onPressed: () {
-                _showCollectionsDialog(context);
-              },
-              icon: _currentCollectionId == null || _currentCollectionId == -1
-                  ? const Icon(Icons.bookmark_add_outlined)
-                  : const Icon(Icons.bookmark),
-              disabledColor: Colors.grey,
-              tooltip: "Add to collection",
-            ),
-            IconButton(
-              onPressed: () {
                 setState(() {
                   _isPinned = !_isPinned;
                 });
@@ -492,14 +529,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                   : const Icon(Icons.push_pin_outlined),
               tooltip: "Pin this note",
             ),
-            IconButton(
-              onPressed: _shareDialog,
-              icon: const Icon(Icons.share_rounded),
-              tooltip: "Share note",
-            ),
-            const SizedBox(
-              width: 5,
-            ),
+            _buildMoreMenu(context),
           ],
         ),
         body: _isLoading
@@ -507,51 +537,51 @@ class _CreatePageState extends ConsumerState<CreatePage> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_isUpdating)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          top: 8.0, left: 12.0, right: 12.0),
-                      child: Row(
-                        children: [
-                          if (_currentCollectionId != null &&
-                              _currentCollectionId != -1)
-                            Expanded(
-                              child: FutureBuilder(
-                                future: DBHelper.instance
-                                    .getCollectionById(_currentCollectionId!),
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasData) {
-                                    return Row(
-                                      children: [
-                                        Icon(
-                                          Icons.bookmark,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(
-                                          width: 5.0,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            snapshot.data!.title,
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .secondary,
-                                            ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        top: 8.0, left: 12.0, right: 12.0),
+                    child: Row(
+                      children: [
+                        if (_currentCollectionId != null &&
+                            _currentCollectionId != -1)
+                          Expanded(
+                            child: FutureBuilder(
+                              future: DBHelper.instance
+                                  .getCollectionById(_currentCollectionId!),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Row(
+                                    children: [
+                                      Icon(
+                                        Icons.bookmark,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(
+                                        width: 5.0,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          snapshot.data!.title,
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
                                           ),
                                         ),
-                                      ],
-                                    );
-                                  }
-                                  return const SizedBox(
-                                    height: 0.0,
+                                      ),
+                                    ],
                                   );
-                                },
-                              ),
+                                }
+                                return const SizedBox(
+                                  height: 0.0,
+                                );
+                              },
                             ),
+                          ),
+                        if (_isUpdating)
                           Row(
                             children: [
                               Text(
@@ -576,9 +606,9 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                      ],
                     ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: TextField(
@@ -608,10 +638,14 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                             : Colors.black,
                         padding: MediaQuery.of(context).orientation ==
                                 Orientation.portrait
-                            ? const EdgeInsets.only(
-                                top: 10.0, left: 12.0, right: 12.0)
+                            ? const EdgeInsets.symmetric(
+                                horizontal: 12.0,
+                                vertical: 8.0,
+                              )
                             : const EdgeInsets.symmetric(
-                                vertical: 5.0, horizontal: 20.0),
+                                vertical: 5.0,
+                                horizontal: 20.0,
+                              ),
                         child: quill.QuillEditor(
                           controller: _quillController,
                           readOnly: false,
@@ -644,6 +678,12 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                       child: quill.QuillToolbar.basic(
                         controller: _quillController,
                         multiRowsDisplay: false,
+                        iconTheme: quill.QuillIconTheme(
+                          iconSelectedColor:
+                              Theme.of(context).colorScheme.onSecondary,
+                          iconSelectedFillColor:
+                              Theme.of(context).colorScheme.surfaceTint,
+                        ),
                         showAlignmentButtons: false,
                         showLeftAlignment: false,
                         showCenterAlignment: false,
@@ -670,6 +710,58 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                 ],
               ),
       ),
+    );
+  }
+
+  PopupMenuButton<MoreAction> _buildMoreMenu(BuildContext context) {
+    return PopupMenuButton(
+      offset: const Offset(-10, 10),
+      padding: const EdgeInsets.all(12.0),
+      position: PopupMenuPosition.under,
+      tooltip: "More",
+      onSelected: (value) {
+        switch (value) {
+          case MoreAction.addToCollection:
+            {
+              return _showCollectionsDialog(context);
+            }
+          case MoreAction.share:
+            {
+              return _shareDialog();
+            }
+          case MoreAction.delete:
+            {
+              return _deleteNoteDialog();
+            }
+          case MoreAction.none:
+            {
+              return;
+            }
+          default:
+            return;
+        }
+      },
+      itemBuilder: (context) {
+        return [
+          PopupMenuItem(
+            value: MoreAction.addToCollection,
+            child: _currentCollectionId == null || _currentCollectionId == -1
+                ? const Text("Add to Collection")
+                : const Text("Update Collection"),
+          ),
+          PopupMenuItem(
+            enabled: (_textEditingController.text.isNotEmpty ||
+                !_quillController.document.isEmpty()),
+            value: MoreAction.share,
+            child: const Text("Share"),
+          ),
+          PopupMenuItem(
+            enabled: _canDelete(),
+            value: MoreAction.delete,
+            child: const Text("Delete"),
+          ),
+        ];
+      },
     );
   }
 }
