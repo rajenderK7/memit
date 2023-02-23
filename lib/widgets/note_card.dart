@@ -57,7 +57,7 @@ class NoteCard extends ConsumerWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Delete the note ?"),
+          title: const Text("Delete the note?"),
           actions: [
             TextButton(
               onPressed: () {

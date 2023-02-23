@@ -349,7 +349,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Delete this note ?"),
+          title: const Text("Delete this note?"),
           actions: [
             TextButton(
               onPressed: () {
