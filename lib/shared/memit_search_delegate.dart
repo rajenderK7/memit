@@ -56,4 +56,7 @@ class MemitSearchDelegate extends SearchDelegate {
             },
           );
   }
+
+  @override
+  String get searchFieldLabel => 'Search title';
 }
