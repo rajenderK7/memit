@@ -157,12 +157,17 @@ class _CreatePageState extends ConsumerState<CreatePage> {
               child: const Text("Cancel"),
             ),
             TextButton(
-              onPressed: () async {
+              onPressed: () {
                 Collection collection =
                     Collection(title: _collectionController.text);
                 ref
                     .read(collectionsProvider.notifier)
-                    .addCollection(collection);
+                    .addCollection(collection)
+                    .then((id) {
+                  setState(() {
+                    _currentCollectionId = id;
+                  });
+                });
                 _collectionController.clear();
                 context.pop();
               },
@@ -179,67 +184,63 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(builder: (context, setStateLocal) {
-          return AlertDialog(
-            actionsAlignment: MainAxisAlignment.center,
-            contentPadding: const EdgeInsets.only(
-              left: 24.0,
-              right: 24.0,
-              top: 16.0,
-              bottom: 0.0,
-            ),
-            title: const Text("Choose a collection"),
-            content: _currentCollectionId == null || _currentCollectionId == -1
-                ? ElevatedButton.icon(
-                    icon: const Icon(Icons.add_box),
-                    onPressed: () {
-                      context.pop();
-                      _showCreateCollectionDialog(context);
-                    },
-                    label: const Text("Add new collection"),
-                  )
-                : null,
-            actions: _currentCollectionId != null && _currentCollectionId != -1
-                ? <Widget>[
-                    const Text(
-                      "Remove the note from current collection to add it to a another collection.",
-                    ),
-                    const SizedBox(
-                      height: 8.0,
-                    ),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (!_isUpdating) {
-                            setState(() {
-                              _currentCollectionId = null;
-                            });
-                          } else {
-                            removeNoteFromCollection(widget.note!.id!);
-                          }
-                          context.pop();
-                        },
-                        child: const Text(
-                          "Remove from current collection",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ),
-                  ]
-                : List<Widget>.generate(
-                    collections.length,
-                    (index) => ListTile(
-                      onTap: () {
+        return StatefulBuilder(
+          builder: (context, setStateLocal) {
+            return AlertDialog(
+              scrollable: true,
+              actionsAlignment: MainAxisAlignment.center,
+              contentPadding: const EdgeInsets.only(
+                left: 24.0,
+                right: 24.0,
+                top: 16.0,
+                bottom: 0.0,
+              ),
+              title: const Text("Choose a collection"),
+              content: ElevatedButton.icon(
+                icon: const Icon(Icons.add_box),
+                onPressed: () {
+                  context.pop();
+                  _showCreateCollectionDialog(context);
+                },
+                label: const Text("Add new collection"),
+              ),
+              actions: List<Widget>.generate(
+                collections.length,
+                (index) => ListTile(
+                  contentPadding: const EdgeInsets.all(0),
+                  onTap: () {
+                    if (_currentCollectionId == collections[index].id) {
+                      if (widget.note != null &&
+                          widget.note!.collection == collections[index].id) {
+                        removeNoteFromCollection(widget.note!.id!);
+                      } else {
                         setState(() {
-                          _currentCollectionId = collections[index].id;
+                          _currentCollectionId = -1;
                         });
-                        context.pop();
-                      },
-                      title: Text(collections[index].title),
+                      }
+                    } else {
+                      setState(() {
+                        _currentCollectionId = collections[index].id;
+                      });
+                    }
+                    context.pop();
+                  },
+                  title: Text(
+                    collections[index].title,
+                    style: TextStyle(
+                      fontWeight: _currentCollectionId == collections[index].id
+                          ? FontWeight.w900
+                          : null,
                     ),
                   ),
-          );
-        });
+                  trailing: _currentCollectionId == collections[index].id
+                      ? const Icon(Icons.close)
+                      : null,
+                ),
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -538,8 +539,7 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(
-                        top: 8.0, left: 12.0, right: 12.0),
+                    padding: const EdgeInsets.only(left: 12.0, right: 12.0),
                     child: Row(
                       children: [
                         if (_currentCollectionId != null &&
@@ -550,29 +550,32 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                                   .getCollectionById(_currentCollectionId!),
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
-                                  return Row(
-                                    children: [
-                                      Icon(
-                                        Icons.bookmark,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(
-                                        width: 5.0,
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          snapshot.data!.title,
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .secondary,
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.bookmark,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(
+                                          width: 5.0,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            snapshot.data!.title,
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   );
                                 }
                                 return const SizedBox(
